@@ -13,51 +13,72 @@ No more copying stats off ufcstats.com by hand: one command predicts the next ca
 
 1. **Install Python 3.10+** from [python.org/downloads](https://www.python.org/downloads/). On Windows, tick
    **"Add python.exe to PATH"** on the first installer screen.
-2. **Download this code.** On GitHub, switch to the branch `claude/confident-euler-i3nj2j` (branch dropdown
-   at the top left), then **Code → Download ZIP**, and unzip it somewhere like `Documents/FightIQ`.
-3. **Open a terminal in that folder.** Windows: open the folder in File Explorer, click the address bar,
-   type `cmd` and press Enter. Mac: right-click the folder in Finder → *New Terminal at Folder*.
-4. **Install and train:**
+2. **Get the code with GitHub Desktop.** *Add → Clone Repository… → GitHub.com* tab → pick
+   `johnthewizwe23/FightIQ` → *Clone*. (A repo created on github.com only appears in GitHub Desktop once
+   you clone it.) If the code is still on the branch `claude/confident-euler-i3nj2j` rather than `main`,
+   pick that branch from *Current Branch*.
+3. **Open a terminal in the repo:** GitHub Desktop → *Repository → Open in Terminal*
+   (or Finder: right-click the folder → *New Terminal at Folder*; Windows: type `cmd` in the folder's address bar).
+4. **Install and train** (on a Mac type `python3` / `pip3`; on Windows `python` / `pip`):
 
 ```bash
-pip install -r requirements.txt
-python -m fightiq train      # downloads the data, backtests, fits the model (~10 seconds)
+pip3 install -r requirements.txt
+python3 -m fightiq train      # downloads the data, backtests, fits the model (~10 seconds)
 ```
 
-On a Mac, use `pip3` and `python3` if `pip` / `python` aren't found.
+To get later updates to the code: GitHub Desktop → *Fetch origin* → *Pull origin*.
 
-## Excel workbook
+## Weekly workflow (Excel)
 
 ```bash
-python -m fightiq workbook   # writes output/FightIQ_Model.xlsx with the latest stats (~30 seconds)
+python3 -m fightiq workbook --upcoming
+```
+
+This downloads the latest results, rebuilds `output/FightIQ_Model.xlsx`, and fills its **Predictor** sheet
+with the next UFC card from ufcstats.com. Open the file, type the decimal odds into columns C and D, and the
+probabilities, picks and bet suggestions calculate. Close the workbook in Excel before running the command
+again. Your **Tracking** rows are carried over to the new file, and the old file is copied to
+`output/backup/` first.
+
+Typing a card yourself works too: on the Predictor sheet set the event date (B3), type Fighter A and
+Fighter B, and the odds. Names aren't case-sensitive (`jim miller` = `Jim Miller`), but the spelling must
+match the **Fighters** sheet (plain letters, no accents). The Notes column tells you when a name isn't found.
+Search the Fighters sheet with Cmd/Ctrl+F to find the right spelling.
+
+Other ways to fill the Predictor:
+
+```bash
+python3 -m fightiq workbook --upcoming --odds odds.csv     # also fill the odds from a CSV
+python3 -m fightiq workbook --card my_card.csv --event "UFC 333" --date 2026-10-17
+python3 -m fightiq workbook                                # just refresh the stats, empty Predictor
 ```
 
 | Sheet | What it is |
 |---|---|
 | Guide | How to use it, how the model works, backtest results |
-| Predictor | Type a card (dropdown names) and decimal odds in the yellow cells; Excel formulas run the model and suggest bets |
+| Predictor | The card and odds (yellow cells); Excel formulas run the model and suggest bets |
 | Tracking | Log picks and bets; record, units and ROI calculate themselves |
 | Fighters | Every UFC fighter's stats going into their next fight |
 | Model | Coefficients, blend weights and bet rules the Predictor uses |
 | Backtest | Walk-forward results from 2015 on, by year |
 | Fight Database | Every bout since 2001 with both fighters' pre-fight stats, model probability and odds |
 
-The Predictor gives the same probabilities as `python -m fightiq predict`. Re-run `workbook` after each event so
-the Fighters sheet has the newest results.
+The Predictor's formulas reproduce the Python model exactly (except debut bouts, where Excel doesn't know
+the newcomer's reach; those are never bet).
 
-## Weekly workflow
+## Weekly workflow (command line only)
 
 ```bash
-python -m fightiq events                      # list upcoming UFC events
-python -m fightiq predict                     # predict the next event (scraped from ufcstats.com)
-python -m fightiq predict --odds odds.csv     # ...with odds, so it can suggest bets
-python -m fightiq grade                       # after the event: settle the picks, print record and ROI
+python3 -m fightiq events                      # list upcoming UFC events
+python3 -m fightiq predict --odds odds.csv     # predict the next event, write output/<date>_<event>.xlsx
+python3 -m fightiq grade                       # after the event: settle the picks, print record and ROI
 ```
 
-If ufcstats.com can't be reached, or you want to enter the card yourself, use a CSV:
+If ufcstats.com can't be reached, or you want to enter the card yourself, use a CSV (with either
+`predict` or `workbook`):
 
 ```bash
-python -m fightiq predict --card my_card.csv --event "UFC 333" --date 2026-10-17
+python3 -m fightiq predict --card my_card.csv --event "UFC 333" --date 2026-10-17
 ```
 
 ```csv
@@ -79,8 +100,8 @@ Each run writes `output/<date>_<event>.xlsx` with two sheets:
 Every prediction is also appended to `output/predictions_log.csv`, and `grade` fills in the results. That
 log is your live track record.
 
-Other commands: `python -m fightiq update` forces a fresh data download (`predict` refreshes data older than
-12 hours by itself). `python -m fightiq fighter "Payton Talbott"` prints one fighter's current stats.
+Other commands: `python3 -m fightiq update` forces a fresh data download (`predict` refreshes data older than
+12 hours by itself). `python3 -m fightiq fighter "Payton Talbott"` prints one fighter's current stats.
 Re-run `train` every month or so to refit on the newest fights.
 
 ## How it works

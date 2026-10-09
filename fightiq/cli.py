@@ -39,18 +39,26 @@ def cmd_predict(args):
     data.download(max_age_hours=12)
     if not config.MODEL_PATH.exists():
         raise SystemExit("no trained model yet - run: python -m fightiq train")
-    if args.card:
-        card = card_mod.read_card_csv(args.card)
-        name = args.event or "Custom card"
-        date = datetime.strptime(args.date, "%Y-%m-%d") if args.date else None
-    else:
-        card, name, date = _scrape(card_mod.scrape_upcoming, args.event_index)
-        if args.odds:
-            card = _merge_odds(card, card_mod.read_card_csv(args.odds))
+    card, name, date = _get_card(args, scrape=True)
     picks, profiles = predict_card(card, name, date)
     xlsx, log = write_outputs(picks, profiles, name)
     _print_picks(picks, name)
     print(f"\nspreadsheet: {xlsx}\nlogged to:   {log}")
+
+
+def _get_card(args, scrape: bool):
+    """(card, event name, event date) from --card, or scraped from ufcstats when `scrape`."""
+    if args.card:
+        card = card_mod.read_card_csv(args.card)
+        name = args.event or "Custom card"
+        date = datetime.strptime(args.date, "%Y-%m-%d") if args.date else None
+    elif scrape:
+        card, name, date = _scrape(card_mod.scrape_upcoming, args.event_index)
+        if args.odds:
+            card = _merge_odds(card, card_mod.read_card_csv(args.odds))
+    else:
+        return None, "", None
+    return card, name, date
 
 
 def _merge_odds(card: pd.DataFrame, odds: pd.DataFrame) -> pd.DataFrame:
@@ -93,7 +101,10 @@ def cmd_workbook(args):
     data.download(max_age_hours=12)
     if not config.MODEL_PATH.exists():
         raise SystemExit("no trained model yet - run: python -m fightiq train")
-    print(f"workbook written to {build_workbook()}")
+    card, name, date = _get_card(args, scrape=args.upcoming)
+    if card is not None:
+        print(f"filling the Predictor with {name} ({len(card)} bouts)")
+    print(f"workbook written to {build_workbook(card=card, event_name=name, event_date=date)}")
 
 
 def cmd_fighter(args):
@@ -118,8 +129,14 @@ def main(argv=None):
     pr.add_argument("--date", help="event date YYYY-MM-DD (with --card)")
     pr.set_defaults(func=cmd_predict)
     sub.add_parser("grade", help="settle logged picks against results").set_defaults(func=cmd_grade)
-    sub.add_parser("workbook", help="build the Excel workbook (Predictor, Fighters, Backtest, ...)").set_defaults(
-        func=cmd_workbook)
+    wp = sub.add_parser("workbook", help="build the Excel workbook (Predictor, Fighters, Backtest, ...)")
+    wp.add_argument("--upcoming", action="store_true", help="fill the Predictor with the next card from ufcstats.com")
+    wp.add_argument("--card", help="fill the Predictor from a card CSV instead")
+    wp.add_argument("--odds", help="CSV of odds to attach to the scraped card")
+    wp.add_argument("--event-index", type=int, default=0, help="0 = next event, 1 = the one after, ...")
+    wp.add_argument("--event", help="event name (with --card)")
+    wp.add_argument("--date", help="event date YYYY-MM-DD (with --card)")
+    wp.set_defaults(func=cmd_workbook)
     fp = sub.add_parser("fighter", help="show a fighter's current stats")
     fp.add_argument("name")
     fp.set_defaults(func=cmd_fighter)
