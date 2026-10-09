@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import difflib
+import re
 from datetime import datetime
 
 import numpy as np
@@ -45,6 +46,9 @@ def resolve_card(card: pd.DataFrame, fights: pd.DataFrame, fighters: pd.DataFram
             name = row[f"fighter_{s}"]
             url = row.get(f"url_{s}", "") or ""
             div = data.parse_division(row.get("weight_class", ""))[0]
+            tagged = re.match(r"(.*?)\s*\(([A-Za-z ]+)\)(?:\s*#\d+)?$", str(name))
+            if tagged:  # Fighters-sheet spelling for shared names, e.g. "Bruno Silva (Flyweight)"
+                name, div = tagged.group(1), data.parse_division(tagged.group(2))[0]
             limit = data.WEIGHT_LIMITS.get(div, np.nan)
             fid = url if url in known else resolver.resolve(name, limit)
             if fid not in known:

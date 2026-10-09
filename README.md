@@ -30,25 +30,45 @@ To get later updates to the code: GitHub Desktop → *Fetch origin* → *Pull or
 
 ## Weekly workflow (Excel)
 
+One-time: get a free odds key at [the-odds-api.com](https://the-odds-api.com) (500 requests a month; FightIQ
+uses 1 per run) and save it:
+
 ```bash
-python3 -m fightiq workbook --upcoming
+python3 -m fightiq odds-key YOUR_KEY
 ```
 
-This downloads the latest results, rebuilds `output/FightIQ_Model.xlsx`, and fills its **Predictor** sheet
-with the next UFC card from ufcstats.com. Open the file, type the decimal odds into columns C and D, and the
-probabilities, picks and bet suggestions calculate. Close the workbook in Excel before running the command
-again. Your **Tracking** rows are carried over to the new file, and the old file is copied to
-`output/backup/` first.
+Each fight week (close Excel first):
+
+```bash
+python3 -m fightiq workbook --upcoming
+open output/FightIQ_Model.xlsx
+```
+
+That one command:
+
+* refreshes every fighter's stats with the latest results,
+* fills the **Predictor** with the next UFC card from ufcstats.com (via your Chrome if the site asks for a
+  browser check),
+* fills in the best current odds from Australian bookmakers (hover an odds cell to see which bookmaker),
+* logs every bout that has odds into **Tracking** (pick, probability, suggested bet and stake), and
+* fills in W/L for earlier bouts once their results are in the data.
+
+Bouts the odds service doesn't list yet stay blank: type those odds in yourself. To update the odds closer
+to fight time without changing the card: `python3 -m fightiq workbook --refresh-odds`. Running `workbook`
+with no options keeps the current card and just refreshes stats and Tracking.
+
+Your **Tracking** rows (including any you typed yourself) are carried over to each new file, and the old file
+is copied to `output/backup/` first.
 
 Typing a card yourself works too: on the Predictor sheet set the event date (B3), type Fighter A and
 Fighter B, and the odds. Names aren't case-sensitive (`jim miller` = `Jim Miller`), but the spelling must
 match the **Fighters** sheet (plain letters, no accents). The Notes column tells you when a name isn't found.
-Search the Fighters sheet with Cmd/Ctrl+F to find the right spelling.
+Save, then run `python3 -m fightiq workbook` to log it into Tracking.
 
 ufcstats.com shows scripts a "Checking your browser… requires JavaScript" page. When that happens FightIQ
 loads the page in your Google Chrome instead (via the `playwright` package in `requirements.txt`; a Chrome
-window may open for a few seconds). If that still fails, save the event page from your browser instead: open the event on ufcstats.com, press Cmd+S (Ctrl+S on Windows), choose
-**Webpage, HTML Only**, then:
+window may open for a few seconds). If that still fails, save the event page from your browser instead:
+open the event on ufcstats.com, press Cmd+S (Ctrl+S on Windows), choose **Webpage, HTML Only**, then:
 
 ```bash
 python3 -m fightiq workbook --event-html ~/Downloads/the-saved-page.html
@@ -57,9 +77,8 @@ python3 -m fightiq workbook --event-html ~/Downloads/the-saved-page.html
 Other ways to fill the Predictor:
 
 ```bash
-python3 -m fightiq workbook --upcoming --odds odds.csv     # also fill the odds from a CSV
 python3 -m fightiq workbook --card my_card.csv --event "UFC 333" --date 2026-10-17
-python3 -m fightiq workbook                                # just refresh the stats, empty Predictor
+python3 -m fightiq workbook --upcoming --no-live-odds    # card only, you type the odds
 ```
 
 | Sheet | What it is |

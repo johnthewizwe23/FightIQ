@@ -26,6 +26,8 @@ from openpyxl.worksheet.datavalidation import DataValidation
 
 from . import config, data, features
 from . import evaluate as ev
+from . import odds as odds_mod
+from . import tracking as tracking_mod
 from .model import FightModel
 
 FONT = "Arial"
@@ -72,12 +74,22 @@ def _widths(ws, widths: dict[str, float]) -> None:
         ws.column_dimensions[col].width = w
 
 
-def build_workbook(path=None, card: pd.DataFrame | None = None, event_name: str = "", event_date=None) -> str:
-    """Write the workbook. With `card` (fighter_a, fighter_b, optional odds_a/odds_b), the Predictor
-    is pre-filled with that card. Rows already in an existing workbook's Tracking sheet are carried over,
-    and the old file is copied to output/backup/ first."""
+def build_workbook(path=None, card: pd.DataFrame | None = None, event_name: str = "", event_date=None,
+                   live_odds: bool = False) -> str:
+    """Write the workbook.
+
+    With `card` (fighter_a, fighter_b, optional odds_a/odds_b) the Predictor gets that card; without one
+    it keeps the card already in the existing workbook. `live_odds` fills the odds from The Odds API.
+    Tracking: rows already there are kept, every bout with odds (the previous card and this one) is
+    logged, and results are filled in from the data. The old file is copied to output/backup/ first.
+    """
     path = Path(path or config.OUTPUT_DIR / "FightIQ_Model.xlsx")
     tracking_rows = _read_tracking(path)
+    previous = _read_predictor(path)
+    if card is None and previous is not None:
+        card, event_name, event_date = previous
+    if live_odds and card is not None:
+        card = odds_mod.add_live_odds(card)
     model = FightModel.load(config.MODEL_PATH)
     priors = model.meta["priors"]
 
@@ -92,6 +104,7 @@ def build_workbook(path=None, card: pd.DataFrame | None = None, event_name: str 
     profiles = _fighter_table(fights, rounds, fighters, priors, as_of)
     if card is not None:
         card = _card_display_names(card, fights, fighters, profiles)
+    tracking_rows = _update_tracking(tracking_rows, previous, (card, event_name, event_date), fights)
 
     wb = Workbook()
     wb._named_styles["Normal"].font = _font()
@@ -147,10 +160,69 @@ def _read_tracking(path: Path) -> list[list]:
     return rows
 
 
+def _read_predictor(path: Path):
+    """(card, event name, event date) from an existing workbook's Predictor, or None."""
+    if not path.exists():
+        return None
+    try:
+        wb = load_workbook(path)
+        cached = load_workbook(path, data_only=True, read_only=True)
+    except Exception:
+        return None
+    if "Predictor" not in wb.sheetnames:
+        return None
+    ws = wb["Predictor"]
+    title = str(ws["A1"].value or "")
+    event = title.split(" - ", 1)[1] if " - " in title else ""
+    when = ws["B3"].value
+    if not isinstance(when, datetime):
+        when = cached["Predictor"]["B3"].value
+    when = when if isinstance(when, datetime) else datetime.combine(date.today(), datetime.min.time())
+    rows = []
+    for r in range(6, 6 + PREDICTOR_ROWS):
+        a, b, oa, ob = (ws.cell(r, c).value for c in range(1, 5))
+        if a and b and str(a).strip() and str(b).strip():
+            num = lambda v: float(v) if isinstance(v, (int, float)) else np.nan
+            rows.append({"fighter_a": str(a).strip(), "fighter_b": str(b).strip(), "odds_a": num(oa), "odds_b": num(ob)})
+    cached.close()
+    if not rows:
+        return None
+    return pd.DataFrame(rows), event, when
+
+
+def _update_tracking(rows: list[list], previous, current, fights) -> list[list]:
+    """Log the previous and current Predictor cards (bouts with odds) and settle finished bouts."""
+    from .predict import predict_card
+    new_rows = []
+    seen = set()
+    for item in (previous, current):
+        if item is None or item[0] is None:
+            continue
+        card, event, when = item
+        card = card[card["odds_a"].notna() & card["odds_b"].notna()] if "odds_a" in card else card.iloc[0:0]
+        key = (event, str(when), tuple(zip(card["fighter_a"], card["fighter_b"])))
+        if card.empty or key in seen:
+            continue
+        seen.add(key)
+        picks, _ = predict_card(card[["fighter_a", "fighter_b", "odds_a", "odds_b"]].reset_index(drop=True),
+                                event, when)
+        new_rows += tracking_mod.picks_to_rows(picks)
+    before = {tracking_mod.row_key(r) for r in rows}
+    merged = tracking_mod.merge(rows, new_rows)
+    added = sum(1 for r in merged if tracking_mod.row_key(r) not in before)
+    n = tracking_mod.settle(merged, fights)
+    print(f"tracking: {added} new bouts logged, {n} results filled in")
+    return merged
+
+
 def _card_display_names(card: pd.DataFrame, fights, fighters, profiles) -> pd.DataFrame:
     """Swap each fighter's name for the exact spelling used in the Fighters sheet."""
     from .predict import resolve_card
+    keep = [c for c in ("odds_source",) if c in card]
+    extra = card[keep].reset_index(drop=True) if keep else None
     card = resolve_card(card.reset_index(drop=True), fights, fighters)
+    if extra is not None:
+        card[keep] = extra
     names = dict(zip(profiles["fighter_id"], profiles["name"]))
     for s in ("a", "b"):
         card[f"fighter_{s}"] = [names.get(i, n) for i, n in zip(card[f"id_{s}"], card[f"fighter_{s}"])]
@@ -428,6 +500,9 @@ def _predictor_sheet(ws, model, cells, fcols, n_fighters, profiles, card=None, e
                 v = row.get(key)
                 if v is not None and v == v:
                     ws[f"{col}{r}"] = float(v)
+            source = row.get("odds_source")
+            if isinstance(source, str) and source:
+                ws[f"C{r}"].comment = Comment(f"Best price found: {source}", "FightIQ")
         pair = []
     else:
         # example bout: two experienced fighters from the data
@@ -471,8 +546,9 @@ def _predictor_sheet(ws, model, cells, fcols, n_fighters, profiles, card=None, e
 def _tracking_sheet(ws, existing_rows: list[list] | None = None) -> None:
     ws["A1"] = "FightIQ live tracking"
     ws["A1"].font = _font(bold=True, size=14)
-    ws["A2"] = ("Copy each pick from the Predictor (or from the python predict spreadsheet). Fill the yellow "
-                "columns; the rest calculates. Use W / L for results, NC or D for no contest / draw.")
+    ws["A2"] = ("Filled in automatically: each weekly rebuild logs every Predictor bout that has odds, and fills in "
+                "W/L once the result is in the data. You can also type rows yourself (W / L, D draw, NC no contest). "
+                "Stake units: 1 unit = 1% of bankroll.")
     ws["A2"].font = _font(italic=True, color="595959")
     n_rows, top = 500, TRACKING_TOP
     existing_rows = existing_rows or []
@@ -503,7 +579,8 @@ def _tracking_sheet(ws, existing_rows: list[list] | None = None) -> None:
         ws[f"E{r}"].number_format = "0.0%"
         ws[f"H{r}"].number_format = "0.00"
         ws[f"K{r}"] = f'=IF(F{r}="W",1,IF(F{r}="L",0,""))'
-        ws[f"L{r}"] = f'=IF(OR(G{r}="",J{r}=""),"",IF(J{r}="W",I{r}*(H{r}-1),IF(J{r}="L",-I{r},0)))'
+        ws[f"L{r}"] = (f'=IF(OR(G{r}="",J{r}=""),"",IF(J{r}="W",I{r}*(H{r}-1),IF(J{r}="L",-I{r},'
+                       f'IF(OR(J{r}="D",J{r}="NC"),0,""))))')
         ws[f"L{r}"].number_format = "+0.00;-0.00;0.00"
     if existing_rows:
         for i, row in enumerate(existing_rows):
@@ -679,16 +756,17 @@ def _guide_sheet(ws, model, s: dict, last_event, n_fights: int) -> None:
             "using only earlier bouts. The old model used today's career stats for past fights, which leaked the result.",
         ]),
         ("How to use it each week", [
-            "Easiest: run  python3 -m fightiq workbook --upcoming  - it rebuilds this file with the latest stats AND fills "
-            "the Predictor with the next UFC card. Then just type the odds in columns C and D.",
-            "By hand: on the Predictor sheet set the event date (B3), type Fighter A and Fighter B, and the decimal odds.",
-            "Names: capitals don't matter (jim miller = Jim Miller), but the spelling must match the Fighters sheet "
-            "exactly - plain letters, no accents. If a name isn't found, the Notes column says so; search the Fighters "
-            "sheet (Cmd/Ctrl+F) for the right spelling. Fighters with no UFC fights yet are treated as debutants.",
-            "Read FightIQ P(A) (chance Fighter A wins), the Pick, and the Bet column. Odds are optional; without them "
-            "you get the stats-only probability and no bet suggestions.",
-            "Log picks and bets in the Tracking sheet. Your Tracking rows are kept when the file is rebuilt (a backup "
-            "of the old file is saved in output/backup).",
+            "1. Close this file, then in Terminal run:  python3 -m fightiq workbook --upcoming  - it refreshes the stats, "
+            "fills the Predictor with the next UFC card and the best current odds, logs the picks into Tracking, and "
+            "fills in W/L for last week's bouts.",
+            "2. Open the file. Type odds for any bout left blank in columns C and D (hover an odds cell to see the bookmaker).",
+            "3. Read FightIQ P(A) (chance Fighter A wins), the Pick, and the Bet column with its suggested stake.",
+            "4. If you typed or changed odds, save, close, and run  python3 -m fightiq workbook  to log them into Tracking. "
+            "To update odds nearer fight time:  python3 -m fightiq workbook --refresh-odds",
+            "5. After the event, the next weekly run fills in the results. Tracking rows are kept on every rebuild "
+            "(a backup of the old file goes to output/backup).",
+            "Typing fighters by hand: capitals don't matter (jim miller = Jim Miller), but the spelling must match the "
+            "Fighters sheet - plain letters, no accents. The Notes column flags names it can't find.",
         ]),
         ("How it works", [
             "Features (fighter A minus fighter B): " + ", ".join(model.features) + ". See the Model sheet.",

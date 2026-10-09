@@ -42,6 +42,9 @@ def cmd_predict(args):
     if not config.MODEL_PATH.exists():
         raise SystemExit("no trained model yet - run: python -m fightiq train")
     card, name, date = _get_card(args, scrape=True)
+    if "odds_a" not in card or card["odds_a"].isna().all():
+        from .odds import add_live_odds
+        card = add_live_odds(card)
     picks, profiles = predict_card(card, name, date)
     xlsx, log = write_outputs(picks, profiles, name)
     _print_picks(picks, name)
@@ -116,7 +119,24 @@ def cmd_workbook(args):
         card, name, date = None, "", None
     if card is not None:
         print(f"filling the Predictor with {name} ({len(card)} bouts)")
-    print(f"workbook written to {build_workbook(card=card, event_name=name, event_date=date)}")
+    # live odds for a freshly loaded card, or for the kept card with --refresh-odds;
+    # a card CSV keeps the odds typed into it unless --refresh-odds is given
+    new_card = card is not None and not args.card
+    live = not args.no_live_odds and (args.refresh_odds or new_card)
+    path = build_workbook(card=card, event_name=name, event_date=date, live_odds=live)
+    print(f"workbook written to {path}")
+
+
+def cmd_odds_key(args):
+    from . import odds
+    try:
+        odds.check_key(args.key)
+    except odds.OddsError as exc:
+        raise SystemExit(str(exc)) from exc
+    except requests.RequestException as exc:
+        print(f"couldn't check the key right now ({exc}); saving it anyway")
+    odds.save_key(args.key)
+    print(f"odds API key saved to {odds.KEY_FILE} - odds will now fill in automatically")
 
 
 def cmd_fighter(args):
@@ -150,7 +170,12 @@ def main(argv=None):
     wp.add_argument("--event-index", type=int, default=0, help="0 = next event, 1 = the one after, ...")
     wp.add_argument("--event", help="event name (with --card)")
     wp.add_argument("--date", help="event date YYYY-MM-DD (with --card)")
+    wp.add_argument("--refresh-odds", action="store_true", help="keep the current card and update its odds")
+    wp.add_argument("--no-live-odds", action="store_true", help="don't fetch odds from The Odds API")
     wp.set_defaults(func=cmd_workbook)
+    kp = sub.add_parser("odds-key", help="save your free The Odds API key (the-odds-api.com)")
+    kp.add_argument("key")
+    kp.set_defaults(func=cmd_odds_key)
     fp = sub.add_parser("fighter", help="show a fighter's current stats")
     fp.add_argument("name")
     fp.set_defaults(func=cmd_fighter)
