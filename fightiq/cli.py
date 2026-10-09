@@ -88,6 +88,14 @@ def cmd_grade(args):
     grade(LOG_PATH)
 
 
+def cmd_workbook(args):
+    from .workbook import build_workbook
+    data.download(max_age_hours=12)
+    if not config.MODEL_PATH.exists():
+        raise SystemExit("no trained model yet - run: python -m fightiq train")
+    print(f"workbook written to {build_workbook()}")
+
+
 def cmd_fighter(args):
     from .predict import predict_card
     card = pd.DataFrame({"fighter_a": [args.name], "fighter_b": [args.name]})
@@ -110,6 +118,8 @@ def main(argv=None):
     pr.add_argument("--date", help="event date YYYY-MM-DD (with --card)")
     pr.set_defaults(func=cmd_predict)
     sub.add_parser("grade", help="settle logged picks against results").set_defaults(func=cmd_grade)
+    sub.add_parser("workbook", help="build the Excel workbook (Predictor, Fighters, Backtest, ...)").set_defaults(
+        func=cmd_workbook)
     fp = sub.add_parser("fighter", help="show a fighter's current stats")
     fp.add_argument("name")
     fp.set_defaults(func=cmd_fighter)

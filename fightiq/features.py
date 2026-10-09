@@ -217,3 +217,24 @@ def add_matchup_features(out: pd.DataFrame) -> pd.DataFrame:
     feats["recent_form"] = a("recent_form") - b("recent_form")
     feats["debut"] = (a("ufc_fights") == 0).astype(float) - (b("ufc_fights") == 0).astype(float)
     return pd.concat([out, feats.add_prefix("f_")], axis=1)
+
+
+def current_profiles(fights: pd.DataFrame, rounds: pd.DataFrame, fighters: pd.DataFrame,
+                     priors: dict[str, float], as_of: pd.Timestamp) -> pd.DataFrame:
+    """Every fighter's profile going into a bout on `as_of`, via the same path as predictions.
+
+    Each fighter gets a placeholder upcoming bout against an opponent with no history, so the
+    numbers are exactly the ones `build` would use for a real upcoming bout on that date.
+    """
+    ids = pd.unique(pd.concat([fights["id_a"], fights["id_b"]]))
+    up = pd.DataFrame({
+        "fight_id": [f"profile:{i}" for i in range(len(ids))], "event": "", "bout": "", "date": as_of,
+        "name_a": "", "name_b": "", "id_a": ids, "id_b": "__no_history__", "division": "other",
+        "women": False, "title": False, "scheduled_rounds": np.nan, "method": "",
+    })
+    X = build(fights, rounds, fighters, upcoming=up, priors=priors)
+    X = X[X["upcoming"]]
+    cols = [c[:-2] for c in X.columns if c.endswith("_a") and c not in ("id_a", "name_a", "result_a")]
+    out = X[["id_a"] + [c + "_a" for c in cols]].copy()
+    out.columns = ["fighter_id"] + cols
+    return out.reset_index(drop=True)

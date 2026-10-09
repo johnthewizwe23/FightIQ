@@ -9,14 +9,41 @@ give it betting odds it blends the model with the market price and flags bets wi
 
 No more copying stats off ufcstats.com by hand: one command predicts the next card.
 
-## Setup
+## Setup (one time)
 
-Python 3.10 or newer.
+1. **Install Python 3.10+** from [python.org/downloads](https://www.python.org/downloads/). On Windows, tick
+   **"Add python.exe to PATH"** on the first installer screen.
+2. **Download this code.** On GitHub, switch to the branch `claude/confident-euler-i3nj2j` (branch dropdown
+   at the top left), then **Code → Download ZIP**, and unzip it somewhere like `Documents/FightIQ`.
+3. **Open a terminal in that folder.** Windows: open the folder in File Explorer, click the address bar,
+   type `cmd` and press Enter. Mac: right-click the folder in Finder → *New Terminal at Folder*.
+4. **Install and train:**
 
 ```bash
 pip install -r requirements.txt
 python -m fightiq train      # downloads the data, backtests, fits the model (~10 seconds)
 ```
+
+On a Mac, use `pip3` and `python3` if `pip` / `python` aren't found.
+
+## Excel workbook
+
+```bash
+python -m fightiq workbook   # writes output/FightIQ_Model.xlsx with the latest stats (~30 seconds)
+```
+
+| Sheet | What it is |
+|---|---|
+| Guide | How to use it, how the model works, backtest results |
+| Predictor | Type a card (dropdown names) and decimal odds in the yellow cells; Excel formulas run the model and suggest bets |
+| Tracking | Log picks and bets; record, units and ROI calculate themselves |
+| Fighters | Every UFC fighter's stats going into their next fight |
+| Model | Coefficients, blend weights and bet rules the Predictor uses |
+| Backtest | Walk-forward results from 2015 on, by year |
+| Fight Database | Every bout since 2001 with both fighters' pre-fight stats, model probability and odds |
+
+The Predictor gives the same probabilities as `python -m fightiq predict`. Re-run `workbook` after each event so
+the Fighters sheet has the newest results.
 
 ## Weekly workflow
 
