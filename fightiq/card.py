@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import re
 import time
-from datetime import datetime
+from datetime import date, datetime, timedelta
 
 import pandas as pd
 import requests
@@ -11,7 +11,26 @@ from bs4 import BeautifulSoup
 
 from . import config
 
-HEADERS = {"User-Agent": "Mozilla/5.0 (FightIQ; personal research)"}
+HEADERS = {
+    "User-Agent": ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
+                   "(KHTML, like Gecko) Chrome/124.0 Safari/537.36"),
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Accept-Language": "en-US,en;q=0.9",
+}
+
+# Pages that list the next event. The completed-events page shows the next event in its top row,
+# so it is the fallback if the upcoming page can't be read.
+EVENT_LIST_URLS = [
+    config.UFCSTATS_UPCOMING,
+    config.UFCSTATS_UPCOMING.replace("http://", "https://"),
+    "http://ufcstats.com/statistics/events/completed",
+    "https://ufcstats.com/statistics/events/completed",
+]
+DEBUG_HTML = config.OUTPUT_DIR / "ufcstats_debug.html"
+
+
+class ScrapeError(Exception):
+    """ufcstats.com answered, but the card couldn't be read from the page."""
 
 
 def fetch(url: str) -> str:
@@ -81,17 +100,45 @@ def _parse_date(text: str):
 
 def scrape_upcoming(event_index: int = 0) -> tuple[pd.DataFrame, str, datetime | None]:
     """Bouts for the next (or Nth upcoming) UFC event on ufcstats.com."""
-    events = parse_upcoming_events(fetch(config.UFCSTATS_UPCOMING))
-    if not events:
-        raise RuntimeError("no upcoming events found on ufcstats.com")
+    events = list_upcoming()
+    if event_index >= len(events):
+        raise ScrapeError(f"only {len(events)} upcoming event(s) listed on ufcstats.com")
     ev = events[event_index]
-    detail = parse_event(fetch(ev["url"]))
+    html = fetch(ev["url"])
+    detail = parse_event(html)
+    if not detail["bouts"]:
+        _save_debug(ev["url"], html)
+        raise ScrapeError(f"found the event '{ev['name']}' but couldn't read its bouts. "
+                          f"What the site returned is saved in {DEBUG_HTML}")
     card = pd.DataFrame(detail["bouts"])
     return card, detail["name"] or ev["name"], detail["date"] or ev["date"]
 
 
 def list_upcoming() -> list[dict]:
-    return parse_upcoming_events(fetch(config.UFCSTATS_UPCOMING))
+    """Upcoming events, soonest first, trying each event-list page until one can be read."""
+    cutoff = date.today() - timedelta(days=2)  # event dates are US dates; allow for time zones
+    problems, last = [], None
+    for url in EVENT_LIST_URLS:
+        try:
+            html = fetch(url)
+        except requests.RequestException as exc:
+            problems.append(f"{url}: {exc}")
+            continue
+        events = [e for e in parse_upcoming_events(html) if e["date"] is None or e["date"].date() >= cutoff]
+        if events:
+            return events
+        last = (url, html)
+        problems.append(f"{url}: page loaded ({len(html):,} characters) but no upcoming events found")
+    if last is None:
+        raise requests.ConnectionError("; ".join(problems))
+    _save_debug(*last)
+    raise ScrapeError("couldn't find the next event on ufcstats.com.\n  " + "\n  ".join(problems)
+                      + f"\nWhat the site returned is saved in {DEBUG_HTML}")
+
+
+def _save_debug(url: str, html: str) -> None:
+    DEBUG_HTML.parent.mkdir(parents=True, exist_ok=True)
+    DEBUG_HTML.write_text(f"<!-- fetched from {url} at {datetime.now().isoformat(timespec='seconds')} -->\n{html}")
 
 
 def parse_odds(value) -> float:

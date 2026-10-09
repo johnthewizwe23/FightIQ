@@ -26,7 +26,9 @@ def _scrape(fn, *a):
         return fn(*a)
     except requests.RequestException as exc:
         raise SystemExit(f"couldn't reach ufcstats.com ({exc}).\n"
-                         "Use a card CSV instead: python -m fightiq predict --card my_card.csv") from exc
+                         "Use a card CSV instead: python3 -m fightiq predict --card my_card.csv") from exc
+    except card_mod.ScrapeError as exc:
+        raise SystemExit(f"{exc}\nUse a card CSV instead: python3 -m fightiq predict --card my_card.csv") from exc
 
 
 def cmd_events(args):
@@ -101,7 +103,12 @@ def cmd_workbook(args):
     data.download(max_age_hours=12)
     if not config.MODEL_PATH.exists():
         raise SystemExit("no trained model yet - run: python -m fightiq train")
-    card, name, date = _get_card(args, scrape=args.upcoming)
+    try:
+        card, name, date = _get_card(args, scrape=args.upcoming)
+    except SystemExit as exc:
+        # still build the workbook so the stats are fresh; the card can be typed into the Predictor
+        print(f"{exc}\n\nBuilding the workbook without a card - type the bouts into the Predictor sheet.\n")
+        card, name, date = None, "", None
     if card is not None:
         print(f"filling the Predictor with {name} ({len(card)} bouts)")
     print(f"workbook written to {build_workbook(card=card, event_name=name, event_date=date)}")
