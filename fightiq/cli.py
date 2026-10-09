@@ -54,12 +54,17 @@ def _get_card(args, scrape: bool):
         card = card_mod.read_card_csv(args.card)
         name = args.event or "Custom card"
         date = datetime.strptime(args.date, "%Y-%m-%d") if args.date else None
+    elif getattr(args, "event_html", None):
+        try:
+            card, name, date = card_mod.card_from_saved_page(args.event_html)
+        except (OSError, card_mod.ScrapeError) as exc:
+            raise SystemExit(str(exc)) from exc
     elif scrape:
         card, name, date = _scrape(card_mod.scrape_upcoming, args.event_index)
-        if args.odds:
-            card = _merge_odds(card, card_mod.read_card_csv(args.odds))
     else:
         return None, "", None
+    if args.odds and not args.card:
+        card = _merge_odds(card, card_mod.read_card_csv(args.odds))
     return card, name, date
 
 
@@ -131,6 +136,7 @@ def main(argv=None):
     pr = sub.add_parser("predict", help="predict the next card (scraped) or a card CSV")
     pr.add_argument("--card", help="CSV with fighter_a, fighter_b[, odds_a, odds_b, weight_class]")
     pr.add_argument("--odds", help="CSV of odds to attach to a scraped card")
+    pr.add_argument("--event-html", help="event page saved from ufcstats.com in your browser (instead of scraping)")
     pr.add_argument("--event-index", type=int, default=0, help="0 = next event, 1 = the one after, ...")
     pr.add_argument("--event", help="event name (with --card)")
     pr.add_argument("--date", help="event date YYYY-MM-DD (with --card)")
@@ -140,6 +146,7 @@ def main(argv=None):
     wp.add_argument("--upcoming", action="store_true", help="fill the Predictor with the next card from ufcstats.com")
     wp.add_argument("--card", help="fill the Predictor from a card CSV instead")
     wp.add_argument("--odds", help="CSV of odds to attach to the scraped card")
+    wp.add_argument("--event-html", help="event page saved from ufcstats.com in your browser (instead of scraping)")
     wp.add_argument("--event-index", type=int, default=0, help="0 = next event, 1 = the one after, ...")
     wp.add_argument("--event", help="event name (with --card)")
     wp.add_argument("--date", help="event date YYYY-MM-DD (with --card)")

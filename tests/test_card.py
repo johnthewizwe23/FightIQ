@@ -71,10 +71,8 @@ def test_list_upcoming_falls_back_to_completed_page(monkeypatch, tmp_path):
     from datetime import date, timedelta
     today = date.today()
     completed = _events_page(("Next Event", today + timedelta(days=7)), ("Last Week", today - timedelta(days=7)))
-    pages = {card.EVENT_LIST_URLS[0]: "<html>nothing here</html>",
-             card.EVENT_LIST_URLS[1]: "<html>nothing here</html>",
-             card.EVENT_LIST_URLS[2]: completed}
-    monkeypatch.setattr(card, "fetch", lambda url: pages[url])
+    pages = {card.EVENT_LIST_URLS[0]: "<html>nothing here</html>", card.EVENT_LIST_URLS[1]: completed}
+    monkeypatch.setattr(card, "fetch", lambda url, headers=None: pages[url])
     monkeypatch.setattr(card, "DEBUG_HTML", tmp_path / "debug.html")
     events = card.list_upcoming()
     assert [e["name"] for e in events] == ["Next Event"]
@@ -82,8 +80,29 @@ def test_list_upcoming_falls_back_to_completed_page(monkeypatch, tmp_path):
 
 def test_list_upcoming_saves_page_when_nothing_found(monkeypatch, tmp_path):
     import pytest
-    monkeypatch.setattr(card, "fetch", lambda url: "<html>blocked</html>")
+    monkeypatch.setattr(card, "fetch", lambda url, headers=None: "<html>blocked</html>")
     monkeypatch.setattr(card, "DEBUG_HTML", tmp_path / "debug.html")
     with pytest.raises(card.ScrapeError):
         card.list_upcoming()
     assert "blocked" in (tmp_path / "debug.html").read_text()
+
+
+def test_tries_plain_request_then_browser_headers(monkeypatch, tmp_path):
+    from datetime import date, timedelta
+    good = _events_page(("Next Event", date.today() + timedelta(days=3)))
+    seen = []
+
+    def fake_fetch(url, headers=None):
+        seen.append(headers)
+        return good if headers else "<html><title>Checking your browser</title></html>"
+
+    monkeypatch.setattr(card, "fetch", fake_fetch)
+    assert [e["name"] for e in card.list_upcoming()] == ["Next Event"]
+    assert seen == [None, card.BROWSER_HEADERS]
+
+
+def test_card_from_saved_page(tmp_path):
+    p = tmp_path / "event.html"
+    p.write_text(EVENT)
+    c, name, when = card.card_from_saved_page(p)
+    assert name == "UFC Fight Night: Sooner" and list(c["fighter_b"]) == ["Fighter Two"]

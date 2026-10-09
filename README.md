@@ -45,6 +45,14 @@ Fighter B, and the odds. Names aren't case-sensitive (`jim miller` = `Jim Miller
 match the **Fighters** sheet (plain letters, no accents). The Notes column tells you when a name isn't found.
 Search the Fighters sheet with Cmd/Ctrl+F to find the right spelling.
 
+If `--upcoming` can't read ufcstats.com (the site sometimes sends scripts a cut-down page), save the event
+page from your browser instead: open the event on ufcstats.com, press Cmd+S (Ctrl+S on Windows), choose
+**Webpage, HTML Only**, then:
+
+```bash
+python3 -m fightiq workbook --event-html ~/Downloads/the-saved-page.html
+```
+
 Other ways to fill the Predictor:
 
 ```bash

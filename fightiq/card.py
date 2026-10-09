@@ -11,21 +11,23 @@ from bs4 import BeautifulSoup
 
 from . import config
 
-HEADERS = {
+BROWSER_HEADERS = {
     "User-Agent": ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
                    "(KHTML, like Gecko) Chrome/124.0 Safari/537.36"),
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
     "Accept-Language": "en-US,en;q=0.9",
 }
+# Request styles tried in turn: plain `requests` defaults first (what the daily Greco1899 scrape of
+# ufcstats uses), then browser-like headers.
+HEADER_PROFILES = [None, BROWSER_HEADERS]
 
 # Pages that list the next event. The completed-events page shows the next event in its top row,
-# so it is the fallback if the upcoming page can't be read.
+# so it is the fallback if the upcoming page can't be read. ufcstats.com only serves http.
 EVENT_LIST_URLS = [
     config.UFCSTATS_UPCOMING,
-    config.UFCSTATS_UPCOMING.replace("http://", "https://"),
     "http://ufcstats.com/statistics/events/completed",
-    "https://ufcstats.com/statistics/events/completed",
 ]
+_session = requests.Session()
 DEBUG_HTML = config.OUTPUT_DIR / "ufcstats_debug.html"
 
 
@@ -33,11 +35,29 @@ class ScrapeError(Exception):
     """ufcstats.com answered, but the card couldn't be read from the page."""
 
 
-def fetch(url: str) -> str:
-    resp = requests.get(url, headers=HEADERS, timeout=30)
+def fetch(url: str, headers: dict | None = None) -> str:
+    resp = _session.get(url, headers=headers, timeout=30)
     resp.raise_for_status()
     time.sleep(0.5)  # be polite to ufcstats
     return resp.text
+
+
+def _fetch_until(url: str, ok) -> tuple[str, bool]:
+    """Fetch `url` with each request style until `ok(html)`; returns (html, ok)."""
+    html = ""
+    for headers in HEADER_PROFILES:
+        html = fetch(url, headers)
+        if ok(html):
+            return html, True
+    return html, False
+
+
+def page_summary(html: str) -> str:
+    """Title and the start of the visible text, to show what a page actually was."""
+    soup = BeautifulSoup(html, "html.parser")
+    title = soup.title.get_text(strip=True) if soup.title else "(no title)"
+    text = soup.get_text(" ", strip=True)
+    return f"title '{title}', text: {text[:200]!r}"
 
 
 def fighter_url(href: str) -> str:
@@ -104,31 +124,43 @@ def scrape_upcoming(event_index: int = 0) -> tuple[pd.DataFrame, str, datetime |
     if event_index >= len(events):
         raise ScrapeError(f"only {len(events)} upcoming event(s) listed on ufcstats.com")
     ev = events[event_index]
-    html = fetch(ev["url"])
+    html, ok = _fetch_until(ev["url"], lambda h: bool(parse_event(h)["bouts"]))
     detail = parse_event(html)
-    if not detail["bouts"]:
+    if not ok:
         _save_debug(ev["url"], html)
-        raise ScrapeError(f"found the event '{ev['name']}' but couldn't read its bouts. "
+        raise ScrapeError(f"found the event '{ev['name']}' but couldn't read its bouts ({page_summary(html)}). "
                           f"What the site returned is saved in {DEBUG_HTML}")
     card = pd.DataFrame(detail["bouts"])
     return card, detail["name"] or ev["name"], detail["date"] or ev["date"]
+
+
+def card_from_saved_page(path) -> tuple[pd.DataFrame, str, datetime | None]:
+    """Card from an event page saved in the browser (File > Save Page As, 'Webpage, HTML Only')."""
+    from pathlib import Path
+    detail = parse_event(Path(path).expanduser().read_text(errors="ignore"))
+    if not detail["bouts"]:
+        raise ScrapeError(f"no bouts found in {path}. Save the ufcstats page of the event itself "
+                          "(the one listing the bouts), not the events list.")
+    return pd.DataFrame(detail["bouts"]), detail["name"], detail["date"]
 
 
 def list_upcoming() -> list[dict]:
     """Upcoming events, soonest first, trying each event-list page until one can be read."""
     cutoff = date.today() - timedelta(days=2)  # event dates are US dates; allow for time zones
     problems, last = [], None
+    def upcoming(html):
+        return [e for e in parse_upcoming_events(html) if e["date"] is None or e["date"].date() >= cutoff]
+
     for url in EVENT_LIST_URLS:
         try:
-            html = fetch(url)
+            html, ok = _fetch_until(url, lambda h: bool(upcoming(h)))
         except requests.RequestException as exc:
             problems.append(f"{url}: {exc}")
             continue
-        events = [e for e in parse_upcoming_events(html) if e["date"] is None or e["date"].date() >= cutoff]
-        if events:
-            return events
+        if ok:
+            return upcoming(html)
         last = (url, html)
-        problems.append(f"{url}: page loaded ({len(html):,} characters) but no upcoming events found")
+        problems.append(f"{url}: got a {len(html):,}-character page with no events - {page_summary(html)}")
     if last is None:
         raise requests.ConnectionError("; ".join(problems))
     _save_debug(*last)
