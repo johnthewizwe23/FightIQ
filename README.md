@@ -217,6 +217,12 @@ fightiq/
   pipeline.py   train command: backtest, fit, write reports/evaluation.md
   card.py       scrape upcoming cards from ufcstats.com, or read a card CSV
   predict.py    predict a card, write the spreadsheet, log and grade picks
+  tracking.py   log picks into Tracking and settle results
+  odds.py       live odds from The Odds API, and the card from its feed
+  workbook.py   the Excel workbook (Predictor, Tracking, Fighters, ...)
+  report.py     the predictions + bets PDF
+  site.py       the public website (this week, record, how it works)
+  schedule.py   weekly automatic run on a Mac
   cli.py        command line entry point (python -m fightiq ...)
 tests/          pytest suite (python -m pytest)
 ```
