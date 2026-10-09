@@ -75,3 +75,13 @@ def test_report_renders_predictions_and_bets(tmp_path):
     rec = report.record_from_tracking([row("2026-10-10", "A vs B", "A", res="W", bet="A", odds=2.0, stake=2, bet_res="W"),
                                        row("2026-10-10", "C vs D", "C", res="L")])
     assert rec == {"wins": 1, "losses": 1, "bets": 1, "profit": 2.0, "roi": 1.0}
+
+
+def test_record_ignores_example_row_and_text_odds_are_read():
+    from fightiq import report
+    from fightiq.workbook import _odds_value
+    rows = [row("2026-10-03", "Figueiredo vs Talbott", "Payton Talbott", res="W", bet="Payton Talbott", odds=1.6,
+                stake=1, bet_res="W", event="UFC 332 (example row)")]
+    assert report.record_from_tracking(rows) is None
+    assert _odds_value("1.85") == 1.85 and _odds_value("1,85") == 1.85 and _odds_value("+150") == 2.5
+    assert np.isnan(_odds_value("")) and _odds_value(2) == 2.0

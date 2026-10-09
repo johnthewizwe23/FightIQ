@@ -98,6 +98,19 @@ python3 -m fightiq workbook --upcoming --no-live-odds    # card only, you type t
 The Predictor's formulas reproduce the Python model exactly (except debut bouts, where Excel doesn't know
 the newcomer's reach; those are never bet).
 
+## Fully automatic weekly run (Mac)
+
+```bash
+python3 -m fightiq schedule                 # every Thursday 18:00 (your Mac's time)
+python3 -m fightiq schedule --day fri --time 19:30
+python3 -m fightiq schedule --status        # when it runs + the last run's log
+python3 -m fightiq schedule --off
+```
+
+Each scheduled run does `python3 -m fightiq weekly` (next card, live odds, Tracking, results, PDF) and shows
+a Mac notification when it's done. The Mac must be on and logged in; if it was asleep, the run happens when it
+wakes. Run it by hand any time with `python3 -m fightiq weekly`.
+
 ## Weekly workflow (command line only)
 
 ```bash

@@ -130,6 +130,48 @@ def cmd_workbook(args):
     _make_report(path)
 
 
+def cmd_weekly(args):
+    """The whole weekly routine: next card, odds, tracking, results, PDF, then a notification."""
+    from argparse import Namespace
+
+    from .schedule import notify
+    from .workbook import build_workbook
+    print(f"=== FightIQ weekly run {datetime.now():%Y-%m-%d %H:%M} ===")
+    data.download(force=True)
+    if not config.MODEL_PATH.exists():
+        raise SystemExit("no trained model yet - run: python3 -m fightiq train")
+    problem = ""
+    try:
+        card, name, date = _get_card(Namespace(card=None, event_html=None, odds=None, event_index=0), scrape=True)
+        print(f"filling the Predictor with {name} ({len(card)} bouts)")
+    except SystemExit as exc:
+        problem = "couldn't load the new card from ufcstats.com"
+        print(f"{exc}\n{problem} - keeping the card already in the workbook")
+        card, name, date = None, "", None
+    try:
+        path = build_workbook(card=card, event_name=name, event_date=date, live_odds=True)
+    except SystemExit as exc:
+        notify("FightIQ", f"Weekly run failed: {exc}")
+        raise
+    print(f"workbook written to {path}")
+    pdf = _make_report(path, show=not args.quiet)
+    message = f"{name or 'Card'} ready" if not problem else f"Done, but {problem}"
+    if pdf is not None:
+        message += f" - report in {pdf.parent.name}/{pdf.name}"
+    notify("FightIQ", message)
+    print(message)
+
+
+def cmd_schedule(args):
+    from . import schedule
+    if args.off:
+        print(schedule.remove())
+    elif args.status:
+        print(schedule.status())
+    else:
+        print(schedule.install(args.day, args.time))
+
+
 def _make_report(xlsx_path, show=False):
     from .report import report_from_workbook
     try:
@@ -195,6 +237,15 @@ def main(argv=None):
     wp.add_argument("--no-live-odds", action="store_true", help="don't fetch odds from The Odds API")
     wp.set_defaults(func=cmd_workbook)
     sub.add_parser("report", help="make the predictions + bets PDF from the workbook").set_defaults(func=cmd_report)
+    wk = sub.add_parser("weekly", help="the whole weekly routine: card, odds, tracking, results, PDF")
+    wk.add_argument("--quiet", action="store_true", help="don't open the PDF at the end")
+    wk.set_defaults(func=cmd_weekly)
+    sp = sub.add_parser("schedule", help="run the weekly routine automatically on your Mac")
+    sp.add_argument("--day", default="thu", help="mon, tue, wed, thu, fri, sat or sun (default thu)")
+    sp.add_argument("--time", default="18:00", help="24-hour time on your Mac (default 18:00)")
+    sp.add_argument("--off", action="store_true", help="stop the weekly schedule")
+    sp.add_argument("--status", action="store_true", help="show the schedule and the last run's log")
+    sp.set_defaults(func=cmd_schedule)
     kp = sub.add_parser("odds-key", help="save your free The Odds API key (the-odds-api.com)")
     kp.add_argument("key")
     kp.set_defaults(func=cmd_odds_key)

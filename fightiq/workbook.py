@@ -182,12 +182,25 @@ def _read_predictor(path: Path):
     for r in range(6, 6 + PREDICTOR_ROWS):
         a, b, oa, ob = (ws.cell(r, c).value for c in range(1, 5))
         if a and b and str(a).strip() and str(b).strip():
-            num = lambda v: float(v) if isinstance(v, (int, float)) else np.nan
+            num = _odds_value
             rows.append({"fighter_a": str(a).strip(), "fighter_b": str(b).strip(), "odds_a": num(oa), "odds_b": num(ob)})
     cached.close()
     if not rows:
         return None
     return pd.DataFrame(rows), event, when
+
+
+def _odds_value(v) -> float:
+    """Odds typed as a number or as text ('1.85', '1,85', '+150', '-200')."""
+    if isinstance(v, (int, float)):
+        return float(v)
+    if isinstance(v, str) and v.strip():
+        from .card import parse_odds
+        try:
+            return parse_odds(v.strip().replace(",", "."))
+        except ValueError:
+            return np.nan
+    return np.nan
 
 
 def _update_tracking(rows: list[list], previous, current, fights) -> list[list]:

@@ -186,6 +186,7 @@ def _rows(picks: pd.DataFrame) -> list[dict]:
 
 def record_from_tracking(rows: list[list]) -> dict | None:
     """Season record from Tracking rows (Date, Event, Fight, Pick, prob, Pick res, Bet on, odds, stake, Bet res)."""
+    rows = [r for r in rows if "(example row)" not in str(r[1] or "")]
     picks = [r for r in rows if r[5] in ("W", "L")]
     bets = [r for r in rows if r[6] and r[9] in ("W", "L") and isinstance(r[7], (int, float))
             and isinstance(r[8], (int, float))]
@@ -431,6 +432,10 @@ def report_from_workbook(xlsx_path=None) -> Path:
     if current is None:
         raise SystemExit(f"no card found in {xlsx_path} - run: python3 -m fightiq workbook --upcoming")
     card, event, when = current
+    n_odds = int((card["odds_a"].notna() & card["odds_b"].notna()).sum())
+    print(f"card: {event or 'UFC card'} - odds for {n_odds} of {len(card)} bouts")
+    if n_odds < len(card):
+        print("  (odds are read from the saved file: after typing odds in Excel press Cmd+S, then run this again)")
     picks, _ = predict_card(card.reset_index(drop=True), event, when)
     return render(picks, event or "UFC card", when, report_path(event, when),
                   record_from_tracking(_read_tracking(xlsx_path)))
