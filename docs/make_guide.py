@@ -132,8 +132,8 @@ story = [
         ("Run the weekly command:", [cmd("python3 -m fightiq workbook --upcoming"),
          Spacer(1, 3),
          P("This refreshes every fighter's stats, loads the next UFC card from ufcstats.com, fills in the best "
-           "current odds from Australian bookmakers, logs every pick into the Tracking tab, and fills in W/L "
-           "for earlier bouts. It takes about a minute. A Chrome window may open for a few seconds: leave it, "
+           "current odds from Australian bookmakers, logs every pick into the Tracking tab, fills in W/L "
+           "for earlier bouts, and makes the PDF report (in output/reports). It takes about a minute. A Chrome window may open for a few seconds: leave it, "
            "it closes itself.", small)]),
         ("Open the workbook:", [cmd("open output/FightIQ_Model.xlsx")]),
         "On the <b>Predictor</b> tab, check the card. Any bout with blank odds (columns C and D) was not listed by "
@@ -243,6 +243,7 @@ story += [
             ["<font face='Courier'>python3 -m fightiq workbook</font>", "Keep the card; refresh stats, log typed odds, fill results"],
             ["<font face='Courier'>python3 -m fightiq workbook --refresh-odds</font>", "Keep the card; update the odds"],
             ["<font face='Courier'>python3 -m fightiq workbook --event-html FILE</font>", "Card from a page saved in Chrome"],
+            ["<font face='Courier'>python3 -m fightiq report</font>", "Make and open the predictions + bets PDF"],
             ["<font face='Courier'>python3 -m fightiq odds-key KEY</font>", "Save your odds key (once)"],
             ["<font face='Courier'>python3 -m fightiq train</font>", "Refit the model (monthly)"],
             ["<font face='Courier'>open output/FightIQ_Model.xlsx</font>", "Open the workbook"],

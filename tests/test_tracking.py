@@ -57,3 +57,21 @@ def test_picks_to_rows_skips_bouts_without_odds():
     rows = t.picks_to_rows(picks)
     assert len(rows) == 1
     assert rows[0][t.FIGHT] == "A B vs C D" and rows[0][t.STAKE] == 1.23 and rows[0][t.PROB] == 0.6123
+
+
+def test_report_renders_predictions_and_bets(tmp_path):
+    from fightiq import report
+    picks = pd.DataFrame([
+        {"Fighter A": "Brendan Allen", "Fighter B": "Christian Leroy Duncan", "FightIQ P(A)": 0.62, "Odds A": 1.9,
+         "Odds B": 1.95, "Bet": "Brendan Allen", "Bet odds": 1.9, "EV": 0.178, "Stake (% bankroll)": 0.02, "Notes": ""},
+        {"Fighter A": "Jai Herbert", "Fighter B": "Matheus Camilo", "FightIQ P(A)": 0.24, "Odds A": np.nan,
+         "Odds B": np.nan, "Bet": "", "Bet odds": np.nan, "EV": np.nan, "Stake (% bankroll)": np.nan,
+         "Notes": "Jai Herbert: no UFC history (debut)"},
+    ])
+    out = report.render(picks, "UFC Test", datetime(2026, 10, 10), tmp_path / "r.pdf",
+                        {"wins": 3, "losses": 1, "bets": 2, "profit": -0.8, "roi": -0.2})
+    assert out.exists() and out.stat().st_size > 2000
+    assert report.tier(0.76)[0] == "STRONG" and report.tier(0.65)[0] == "LEAN" and report.tier(0.55)[0] == "TOSS-UP"
+    rec = report.record_from_tracking([row("2026-10-10", "A vs B", "A", res="W", bet="A", odds=2.0, stake=2, bet_res="W"),
+                                       row("2026-10-10", "C vs D", "C", res="L")])
+    assert rec == {"wins": 1, "losses": 1, "bets": 1, "profit": 2.0, "roi": 1.0}

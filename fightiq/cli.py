@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import argparse
+import subprocess
+import sys
 from datetime import datetime
 
 import pandas as pd
@@ -125,6 +127,25 @@ def cmd_workbook(args):
     live = not args.no_live_odds and (args.refresh_odds or new_card)
     path = build_workbook(card=card, event_name=name, event_date=date, live_odds=live)
     print(f"workbook written to {path}")
+    _make_report(path)
+
+
+def _make_report(xlsx_path, show=False):
+    from .report import report_from_workbook
+    try:
+        pdf = report_from_workbook(xlsx_path)
+    except SystemExit:
+        return None  # no card in the Predictor yet
+    print(f"report written to {pdf}")
+    if show and sys.platform == "darwin":
+        subprocess.run(["open", str(pdf)], check=False)
+    return pdf
+
+
+def cmd_report(args):
+    data.download(max_age_hours=12)
+    if _make_report(config.OUTPUT_DIR / "FightIQ_Model.xlsx", show=True) is None:
+        raise SystemExit("no card in the workbook yet - run: python3 -m fightiq workbook --upcoming")
 
 
 def cmd_odds_key(args):
@@ -173,6 +194,7 @@ def main(argv=None):
     wp.add_argument("--refresh-odds", action="store_true", help="keep the current card and update its odds")
     wp.add_argument("--no-live-odds", action="store_true", help="don't fetch odds from The Odds API")
     wp.set_defaults(func=cmd_workbook)
+    sub.add_parser("report", help="make the predictions + bets PDF from the workbook").set_defaults(func=cmd_report)
     kp = sub.add_parser("odds-key", help="save your free The Odds API key (the-odds-api.com)")
     kp.add_argument("key")
     kp.set_defaults(func=cmd_odds_key)

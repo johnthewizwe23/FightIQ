@@ -53,6 +53,10 @@ That one command:
 * logs every bout that has odds into **Tracking** (pick, probability, suggested bet and stake), and
 * fills in W/L for earlier bouts once their results are in the data.
 
+Each run also writes a two-page PDF to `output/reports/` (model predictions for every bout, then the
+value bets with odds, edge and stake). Make and open it on its own with `python3 -m fightiq report`, for
+example after typing in odds yourself.
+
 Bouts the odds service doesn't list yet stay blank: type those odds in yourself. To update the odds closer
 to fight time without changing the card: `python3 -m fightiq workbook --refresh-odds`. Running `workbook`
 with no options keeps the current card and just refreshes stats and Tracking.
