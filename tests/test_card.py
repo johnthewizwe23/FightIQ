@@ -106,3 +106,26 @@ def test_card_from_saved_page(tmp_path):
     p.write_text(EVENT)
     c, name, when = card.card_from_saved_page(p)
     assert name == "UFC Fight Night: Sooner" and list(c["fighter_b"]) == ["Fighter Two"]
+
+
+CHALLENGE = "<html><head><title>Loading…</title></head><body>Checking your browser… This site requires JavaScript.</body></html>"
+
+
+def test_challenge_page_falls_back_to_browser(monkeypatch, tmp_path):
+    from datetime import date, timedelta
+    good = _events_page(("Next Event", date.today() + timedelta(days=3)))
+    monkeypatch.setattr(card, "fetch", lambda url, headers=None: CHALLENGE)
+    monkeypatch.setattr(card, "browser_get", lambda url, ok: good)
+    assert [e["name"] for e in card.list_upcoming()] == ["Next Event"]
+
+
+def test_challenge_without_browser_explains_how_to_install(monkeypatch):
+    import pytest
+
+    def no_browser(url, ok):
+        raise card.ScrapeError(card.PLAYWRIGHT_HELP)
+
+    monkeypatch.setattr(card, "fetch", lambda url, headers=None: CHALLENGE)
+    monkeypatch.setattr(card, "browser_get", no_browser)
+    with pytest.raises(card.ScrapeError, match="pip3 install playwright"):
+        card.list_upcoming()

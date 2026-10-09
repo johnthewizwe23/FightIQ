@@ -1,6 +1,7 @@
 """Get the bouts for an upcoming card: scrape ufcstats.com or read a CSV you fill in."""
 from __future__ import annotations
 
+import atexit
 import re
 import time
 from datetime import date, datetime, timedelta
@@ -43,13 +44,106 @@ def fetch(url: str, headers: dict | None = None) -> str:
 
 
 def _fetch_until(url: str, ok) -> tuple[str, bool]:
-    """Fetch `url` with each request style until `ok(html)`; returns (html, ok)."""
+    """Fetch `url` until `ok(html)`: plain requests, browser-like requests, then a real browser.
+
+    ufcstats.com can put a "Checking your browser... requires JavaScript" page in front of scripts;
+    only a real browser gets past that, so it is the last resort.
+    """
     html = ""
     for headers in HEADER_PROFILES:
         html = fetch(url, headers)
         if ok(html):
             return html, True
+    if is_challenge(html):
+        html = browser_get(url, ok)
+        return html, ok(html)
     return html, False
+
+
+CHALLENGE_MARKERS = ("checking your browser", "requires javascript", "just a moment")
+
+
+def is_challenge(html: str) -> bool:
+    text = html.lower()
+    return len(html) < 20_000 and any(m in text for m in CHALLENGE_MARKERS)
+
+
+PLAYWRIGHT_HELP = (
+    "ufcstats.com is showing a 'Checking your browser' page to scripts, so FightIQ needs to use your browser.\n"
+    "Install the browser helper once:   pip3 install playwright\n"
+    "(it drives your Google Chrome; without Chrome also run:  python3 -m playwright install chromium)\n"
+    "Or save the event page from Chrome (Cmd+S, 'Webpage, HTML Only') and use --event-html <file>."
+)
+
+
+class _Browser:
+    """One browser session reused for every page, so the site's check only has to pass once."""
+
+    def __init__(self):
+        self._pw = self._browser = self._page = None
+        self.headless = True
+
+    def get(self, url: str, ok, wait_s: float = 25.0) -> str:
+        html = self._load(url, ok, wait_s)
+        if not ok(html) and self.headless:
+            # some checks don't clear in a hidden browser; retry with a visible window
+            self.close()
+            self.headless = False
+            print("ufcstats.com is checking the browser - opening a Chrome window for a moment...")
+            html = self._load(url, ok, wait_s)
+        return html
+
+    def _load(self, url, ok, wait_s) -> str:
+        if self._page is None:
+            self._start()
+        try:
+            self._page.goto(url, wait_until="domcontentloaded", timeout=60_000)
+        except Exception as exc:  # a navigation the check triggers mid-load can interrupt goto
+            print(f"(browser: {str(exc).splitlines()[0]})")
+        deadline = time.time() + wait_s
+        html = self._page.content()
+        while not ok(html) and time.time() < deadline:
+            self._page.wait_for_timeout(1000)
+            try:
+                html = self._page.content()
+            except Exception:  # page is mid-navigation
+                continue
+        return html
+
+    def _start(self) -> None:
+        try:
+            from playwright.sync_api import sync_playwright
+        except ImportError as exc:
+            raise ScrapeError(PLAYWRIGHT_HELP) from exc
+        self._pw = sync_playwright().start()
+        errors = []
+        for options in ({"channel": "chrome"}, {}):  # your Google Chrome, else Playwright's Chromium
+            try:
+                self._browser = self._pw.chromium.launch(headless=self.headless, **options)
+                break
+            except Exception as exc:
+                errors.append(str(exc).strip().splitlines()[0])
+        else:
+            self.close()
+            raise ScrapeError("couldn't start a browser (" + "; ".join(errors) + ").\n" + PLAYWRIGHT_HELP)
+        self._page = self._browser.new_page()
+        atexit.register(self.close)
+
+    def close(self) -> None:
+        for obj, method in ((self._browser, "close"), (self._pw, "stop")):
+            if obj is not None:
+                try:
+                    getattr(obj, method)()
+                except Exception:
+                    pass
+        self._pw = self._browser = self._page = None
+
+
+_browser = _Browser()
+
+
+def browser_get(url: str, ok) -> str:
+    return _browser.get(url, ok)
 
 
 def page_summary(html: str) -> str:
