@@ -98,6 +98,30 @@ python3 -m fightiq workbook --upcoming --no-live-odds    # card only, you type t
 The Predictor's formulas reproduce the Python model exactly (except debut bouts, where Excel doesn't know
 the newcomer's reach; those are never bet).
 
+## Public website (fully automatic, free)
+
+`.github/workflows/fightiq-site.yml` runs FightIQ on GitHub every day at 08:00 UTC (plus Saturday 14:00 UTC)
+and publishes a website with three pages: **This week** (picks, win chances, value bets, PDF), **Record**
+(every pick and bet with results, units, ROI and a profit chart) and **How it works** (method, factors,
+backtest and caveats).
+
+* The card comes from ufcstats.com when it can be read; otherwise from The Odds API feed (UFC bouts only).
+* Picks refresh with the latest odds until the first bout starts, then lock and never change. Every update is
+  committed to `site_data/` (one JSON per card + `tracking.csv`), so the history is public and timestamped.
+* Results are filled in from the fight data once each event is over.
+
+One-time setup on github.com:
+
+1. Merge this code into the `main` branch (scheduled workflows only run from the default branch).
+2. **Settings > General > Change visibility > Public** (free GitHub Pages needs a public repo).
+3. **Settings > Secrets and variables > Actions > New repository secret**: name `ODDS_API_KEY`, value = your key.
+4. **Settings > Pages > Build and deployment > Source: GitHub Actions**.
+5. **Actions > FightIQ website > Run workflow** for the first run. The site appears at
+   `https://<your-username>.github.io/FightIQ/`.
+
+Build or preview it locally: `python3 -m fightiq site` (or `--render-only` to rebuild pages from saved state),
+then open `site/index.html`.
+
 ## Fully automatic weekly run (Mac)
 
 ```bash

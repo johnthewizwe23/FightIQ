@@ -42,3 +42,29 @@ def test_add_live_odds_without_key_leaves_card(monkeypatch):
     monkeypatch.setattr(odds, "load_key", lambda: None)
     card = pd.DataFrame({"fighter_a": ["A"], "fighter_b": ["B"]})
     assert odds.add_live_odds(card) is card
+
+
+def test_card_from_feed_picks_the_next_ufc_card_and_uses_data_spellings():
+    fights = pd.DataFrame({
+        "date": pd.to_datetime(["2026-08-01", "2026-09-01", "2026-09-05", "2026-07-01", "2015-01-01"]),
+        "name_a": ["Brendan Allen", "Matheus Camilo", "Loopy Godinez", "Andre Fili", "Old Timer"],
+        "name_b": ["Someone", "Jai Herbert", "Ketlen Souza", "Kai Kamaka III", "Other Guy"],
+    })
+
+    def ev(a, b, start, pa=1.8, pb=2.0):
+        return {"home_team": a, "away_team": b, "commence_time": start, "bookmakers": [
+            {"key": "tab", "title": "TAB", "markets": [{"key": "h2h", "outcomes": [
+                {"name": a, "price": pa}, {"name": b, "price": pb}]}]}]}
+
+    events = [
+        ev("Brendan Allen", "Christian Leroy Duncan", "2026-10-11T03:00:00Z"),   # main event (latest start)
+        ev("Matheus Camilo", "Jai Herbert", "2026-10-11T01:00:00Z"),
+        ev("Loopy Godinez", "Ketlen Sousa", "2026-10-10T23:00:00Z"),             # bookie spelling
+        ev("Old Timer", "PFL Guy", "2026-10-10T22:00:00Z"),                      # ex-UFC, long gone: skip
+        ev("Andre Fili", "Kai Kamaka III", "2026-10-18T01:00:00Z"),              # next week's card
+    ]
+    card, event, day, start = odds.card_from_feed(events, fights, now=pd.Timestamp("2026-10-09T00:00:00Z"))
+    assert event == "UFC: Allen vs. Duncan" and day == pd.Timestamp("2026-10-10")
+    assert list(card["fighter_a"]) == ["Brendan Allen", "Matheus Camilo", "Loopy Godinez"]
+    assert list(card["fighter_b"])[2] == "Ketlen Souza"  # switched to the fight data's spelling
+    assert start == pd.Timestamp("2026-10-10T23:00:00Z")

@@ -20,7 +20,8 @@ from the command output or by reading the PDF/workbook. Other commands:
 | `python3 -m fightiq report` | Rebuild the PDF from the saved workbook |
 | `python3 -m fightiq workbook --event-html FILE` | Card from an event page saved from Chrome (if ufcstats blocks the scraper) |
 | `python3 -m fightiq schedule` / `--status` / `--off` | Weekly automatic run on this Mac (launchd, Thursday 18:00 by default) |
-| `python3 -m fightiq train` | Refit the model (monthly) and rewrite `reports/evaluation.md` |
+| `python3 -m fightiq site` / `--render-only` | Update + rebuild the public website in `site/` (state in `site_data/`) |
+| `python3 -m fightiq train` | Refit the model (monthly) and rewrite `reports/evaluation.md` + `reports/backtest.json` |
 | `python3 -m pytest -q` | Tests |
 
 ## Rules
@@ -37,9 +38,15 @@ from the command output or by reading the PDF/workbook. Other commands:
 - Don't change the model or bet rules (5% EV threshold, quarter Kelly capped at 2%, no bets on UFC debuts)
   without re-running `python3 -m fightiq train` and checking `reports/evaluation.md`.
 
+## Public website
+
+`.github/workflows/fightiq-site.yml` runs `python3 -m fightiq site` daily on GitHub, commits `site/` and `site_data/`,
+and deploys `site/` to GitHub Pages. Published picks are a public record: never edit or delete files in
+`site_data/` by hand, and never change a card's picks after its `locks_at` time.
+
 ## Layout
 
 `data.py` (download/clean ufcstats data) · `features.py` (point-in-time stats, Elo) · `model.py`
 (symmetric logistic regression) · `evaluate.py` (walk-forward backtest, market blend) · `card.py`
 (ufcstats scraper) · `odds.py` (The Odds API) · `predict.py` · `tracking.py` · `workbook.py` (Excel) ·
-`report.py` (PDF) · `schedule.py` (launchd) · `cli.py`. User guide: `docs/FightIQ_Weekly_Guide.pdf`.
+`report.py` (PDF) · `site.py` (website) · `schedule.py` (launchd) · `cli.py`. User guide: `docs/FightIQ_Weekly_Guide.pdf`.

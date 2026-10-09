@@ -1,0 +1,64 @@
+import json
+from datetime import date, timedelta
+
+import pandas as pd
+
+from fightiq import site, tracking as tr
+
+
+def _week(day, locks_at, bouts):
+    return {"event": "UFC Test Night", "date": day, "slug": f"{day}_UFC-Test-Night", "source": "odds feed",
+            "published_at": "2026-10-08T08:00:00+00:00", "updated_at": "2026-10-09T08:00:00+00:00",
+            "locks_at": locks_at, "bouts": bouts}
+
+
+BOUTS = [
+    {"pick": "Brendan Allen", "opponent": "Christian Leroy Duncan", "p": 0.62, "p_model": 0.55, "p_market": 0.6,
+     "odds": 1.9, "opp_odds": 1.95, "debut": False, "bet": "Brendan Allen", "bet_odds": 1.9, "bet_p": 0.62,
+     "edge": 0.178, "stake": 2.0},
+    {"pick": "Matheus Camilo", "opponent": "Jai Herbert", "p": 0.76, "p_model": 0.76, "p_market": None,
+     "odds": None, "opp_odds": None, "debut": True, "bet": None, "bet_odds": None, "bet_p": None, "edge": None,
+     "stake": None},
+]
+
+
+def test_build_with_no_state_shows_coming_soon(tmp_path):
+    out = tmp_path / "site"
+    site.build(tmp_path / "state", out)
+    index = (out / "index.html").read_text()
+    assert "Next card coming soon" in index
+    record = (out / "record.html").read_text()
+    assert "The record starts with the first card" in record
+    for page in ("index.html", "record.html", "model.html"):
+        text = (out / page).read_text()
+        assert ">None<" not in text and "NaN" not in text
+
+
+def test_build_with_a_week_and_settled_results(tmp_path):
+    state, out = tmp_path / "state", tmp_path / "site"
+    upcoming = (date.today() + timedelta(days=2)).isoformat()
+    past = (date.today() - timedelta(days=7)).isoformat()
+    (state / "weeks").mkdir(parents=True)
+    for d in (upcoming, past):
+        (state / "weeks" / f"{d}_UFC-Test-Night.json").write_text(json.dumps(_week(d, f"{d}T23:00:00+00:00", BOUTS)))
+    rows = [[pd.Timestamp(past).to_pydatetime(), "UFC Test Night", "Brendan Allen vs Christian Leroy Duncan",
+             "Brendan Allen", 0.62, "W", "Brendan Allen", 1.9, 2.0, "W"],
+            [pd.Timestamp(past).to_pydatetime(), "UFC Test Night", "Matheus Camilo vs Jai Herbert",
+             "Matheus Camilo", 0.76, "L", None, None, None, None]]
+    site.write_tracking(state / "tracking.csv", rows)
+    assert site.read_tracking(state / "tracking.csv")[0][tr.STAKE] == 2.0
+    site.build(state, out)
+    index = (out / "index.html").read_text()
+    assert "UFC Test Night" in index and "Brendan Allen" in index and "+17.8%" in index and "Debut" in index
+    record = (out / "record.html").read_text()
+    assert "1-1" in record and "+1.80u" in record
+    assert (out / "weeks" / f"{past}_UFC-Test-Night.html").exists()
+    assert (out / "data" / "weeks" / f"{upcoming}_UFC-Test-Night.json").exists()
+
+
+def test_never_publishes_a_card_that_has_started(tmp_path):
+    now = pd.Timestamp("2026-10-11T00:00:00Z")
+    card = pd.DataFrame({"fighter_a": ["A"], "fighter_b": ["B"]})
+    result = site._publish(card, "UFC Late", pd.Timestamp("2026-10-10"), pd.Timestamp("2026-10-10T23:00:00Z"),
+                           "odds feed", tmp_path / "state", tmp_path / "site", now, [], predict_card=None)
+    assert result is None and not list((tmp_path / "state" / "weeks").glob("*.json"))

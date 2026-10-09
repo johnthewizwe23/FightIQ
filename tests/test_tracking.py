@@ -85,3 +85,10 @@ def test_record_ignores_example_row_and_text_odds_are_read():
     assert report.record_from_tracking(rows) is None
     assert _odds_value("1.85") == 1.85 and _odds_value("1,85") == 1.85 and _odds_value("+150") == 2.5
     assert np.isnan(_odds_value("")) and _odds_value(2) == 2.0
+
+
+def test_settle_matches_bookmaker_spellings():
+    rows = [row("2026-10-10", "Christian Duncan vs Brendan Allen", "Christian Duncan", bet="Christian Duncan",
+                odds=2.6, stake=1.0)]
+    assert t.settle(rows, FIGHTS, today=date(2026, 10, 14)) == 1
+    assert rows[0][t.PICK_RES] == "W" and rows[0][t.BET_RES] == "W"

@@ -162,6 +162,15 @@ def cmd_weekly(args):
     print(message)
 
 
+def cmd_site(args):
+    from . import site
+    if not args.render_only:
+        if not config.MODEL_PATH.exists():
+            raise SystemExit("no trained model yet - run: python3 -m fightiq train")
+        site.update(scrape=not args.no_scrape)
+    print(f"site built: {site.build()}")
+
+
 def cmd_schedule(args):
     from . import schedule
     if args.off:
@@ -240,6 +249,10 @@ def main(argv=None):
     wk = sub.add_parser("weekly", help="the whole weekly routine: card, odds, tracking, results, PDF")
     wk.add_argument("--quiet", action="store_true", help="don't open the PDF at the end")
     wk.set_defaults(func=cmd_weekly)
+    st = sub.add_parser("site", help="update the public website (picks, record, how it works) in site/")
+    st.add_argument("--render-only", action="store_true", help="rebuild the pages from saved state, no downloads")
+    st.add_argument("--no-scrape", action="store_true", help="skip ufcstats.com and take the card from the odds feed")
+    st.set_defaults(func=cmd_site)
     sp = sub.add_parser("schedule", help="run the weekly routine automatically on your Mac")
     sp.add_argument("--day", default="thu", help="mon, tue, wed, thu, fri, sat or sun (default thu)")
     sp.add_argument("--time", default="18:00", help="24-hour time on your Mac (default 18:00)")

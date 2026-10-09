@@ -32,7 +32,7 @@
     "trained_fights": 8338,
     "trained_from": "2005-02-05",
     "trained_to": "2026-10-03",
-    "fitted_at": "2026-10-09T13:56:55",
+    "fitted_at": "2026-10-09T23:21:56",
     "blend_weights": {
       "market_logit": 1.0111732377330018,
       "model_score": 0.28573930357318816
