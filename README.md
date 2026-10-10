@@ -103,8 +103,9 @@ the newcomer's reach; those are never bet).
 `.github/workflows/fightiq-site.yml` runs FightIQ on GitHub every day at 08:00 UTC (plus Saturday 14:00 UTC)
 and publishes a website with four pages: **This week** (picks, win chances, value bets, PDF), **Record**
 (every pick and bet with results, units, ROI and a profit chart), **Past fights** (search any UFC fight since 1994
-and see who the model would have picked, using only earlier fights) and **How it works** (method, factors,
-backtest and caveats).
+and see who the model would have picked, using only earlier fights, or browse every event with FightIQ's hit rate
+and average confidence per card) and **How it works** (method, factors, backtest and caveats). Light theme by
+default with a dark-mode switch; asset URLs carry a content hash so browsers always load the latest styles.
 
 * The card comes from ufcstats.com when it can be read; otherwise from The Odds API feed (UFC bouts only).
 * Picks refresh with the latest odds until the first bout starts, then lock and never change. Every update is

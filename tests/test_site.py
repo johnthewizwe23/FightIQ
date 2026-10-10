@@ -76,7 +76,8 @@ def test_build_with_fight_history(tmp_path):
     (state / site.HISTORY_FILE).write_text(history.to_json(P), encoding="utf-8")
     site.build(state, out)
     search = (out / "search.html").read_text()
-    assert f"Search {len(P):,} UFC fights from 2003 to December 2017" in search
+    assert f"{len(P):,} UFC fights and" in search and "2003 to December 2017" in search
+    assert 'data-view="events"' in search and "style.css?v=" in search
     assert 'href="search.html" class="on"' in search and "assets/search.js" in search
     assert json.loads((out / "data" / site.HISTORY_FILE).read_text())["fights_to"] == "2017-12-15"
     assert (out / "assets" / "search.js").exists()
