@@ -20,7 +20,7 @@ import pandas as pd
 import requests
 
 from . import card as card_mod
-from . import config, data
+from . import config, data, history
 from . import odds as odds_mod
 from . import report as report_mod
 from . import tracking as tr
@@ -28,6 +28,7 @@ from . import tracking as tr
 STATE = config.ROOT / "site_data"
 SITE = config.ROOT / "site"
 REPO_URL = "https://github.com/johnthewizwe23/FightIQ"
+HISTORY_FILE = "fight_history.json"
 UNITS = report_mod.UNITS_PER_BANKROLL
 FEATURE_TEXT = {
     "slpm": ("Strikes landed per minute", True),
@@ -152,6 +153,10 @@ def update(state: Path = STATE, site: Path = SITE, scrape: bool = True, now: pd.
     n = tr.settle(rows, fights)
     print(f"results filled in: {n}")
     write_tracking(tracking_csv, rows)
+    try:
+        print(f"fight finder: {history.write(state / HISTORY_FILE):,} past fights")
+    except Exception as exc:  # never let the fight finder hold up the picks
+        print(f"fight finder not updated: {exc}")
     return week
 
 
@@ -247,14 +252,16 @@ def icon(name: str) -> str:
     return f'<span class="ico">{ICONS[name]}</span>'
 
 
-def layout(title: str, body: str, active: str, depth: int = 0, updated: str | None = None) -> str:
+def layout(title: str, body: str, active: str, depth: int = 0, updated: str | None = None,
+           script: str | None = None) -> str:
     up = "../" * depth
     links = []
     for key, href, label in (("week", "index.html", "This week"), ("record", "record.html", "Record"),
-                             ("model", "model.html", "How it works")):
+                             ("search", "search.html", "Past fights"), ("model", "model.html", "How it works")):
         on = ' class="on"' if key == active else ""
         links.append(f'<a href="{up}{href}"{on}>{label}</a>')
     nav = "".join(links)
+    extra = f'<script src="{up}assets/{script}"></script>' if script else ""
     stamp = (f'Updated <time datetime="{esc(updated)}">{esc(updated.replace("T", " ")[:16])} UTC</time> · '
              if updated else "")
     return f"""<!doctype html>
@@ -284,7 +291,7 @@ def layout(title: str, body: str, active: str, depth: int = 0, updated: str | No
     <p>Not financial advice. Bet responsibly · 18+ · Gambling Help: <a href="https://www.gamblinghelponline.org.au">gamblinghelponline.org.au</a>, 1800 858 858.</p>
   </div>
 </footer>
-<script src="{up}assets/app.js"></script>
+<script src="{up}assets/app.js"></script>{extra}
 </body>
 </html>
 """
@@ -654,7 +661,8 @@ Blend: logit(p) = {bt["blend"]["market_logit"]:.3f} × logit(bookmaker p) + {bt[
 <div class="tablewrap"><table><thead><tr><th>Odds of the bet</th><th>Bets</th><th>ROI</th></tr></thead><tbody>{band_rows}</tbody></table></div>
 </div>
 <p class="muted small">Lower log loss and Brier scores are better. Bet rule: 95% range for ROI {pct(rule["roi_95ci"][0], 1)} to {pct(rule["roi_95ci"][1], 1)}
-(resampling whole cards). Full report: <a href="{REPO_URL}/blob/main/reports/evaluation.md">evaluation.md</a>.</p></section>
+(resampling whole cards). Full report: <a href="{REPO_URL}/blob/main/reports/evaluation.md">evaluation.md</a>.
+Look up any fight in this backtest on <a href="search.html">Past fights</a>.</p></section>
 
 <section><h2>{icon("lock")}Honest caveats</h2>
 <ul class="rules">
@@ -673,6 +681,50 @@ live record was 62%. <a href="{REPO_URL}/blob/main/reports/original_model_review
 <li>Historical odds for the backtest: <a href="https://github.com/shortlikeafox/ultimate_ufc_dataset">ultimate_ufc_dataset</a>.</li>
 <li>All code, picks and results: <a href="{REPO_URL}">{REPO_URL.replace("https://", "")}</a>.</li>
 </ul></section>"""
+
+
+# ============================================================================ past fights
+
+EXAMPLES = ("Jon Jones", "Conor McGregor", "Amanda Nunes", "Israel Adesanya", "Max Holloway", "UFC 300")
+
+
+def search_body(hist: dict | None) -> str:
+    """The fight finder: a search box over every past fight; assets/search.js fills in the results."""
+    head = """<section class="hero"><div><h1>Past fights</h1>
+<p class="muted">{intro}</p></div>{side}</section>"""
+    if not hist:
+        return head.format(intro="Search every past UFC fight and see who FightIQ would have picked.", side="") + (
+            '<section><div class="empty">The fight finder appears after the next daily update.</div></section>')
+    first = hist["events"][0][0][:4]
+    to = date.fromisoformat(hist["fights_to"])
+    intro = (f"Search {len(hist['fights']):,} UFC fights from {first} to {to:%B %Y} and see who FightIQ would have picked. "
+             "Every pick uses only what was known before the fight: each year is predicted by a model trained only "
+             "on earlier years. No hindsight.")
+    side = f'<div class="hero-side"><a class="btn" href="data/{HISTORY_FILE}">{icon("data")}JSON</a></div>'
+    chips = "".join(f'<button class="chip" type="button">{esc(x)}</button>' for x in EXAMPLES)
+    return head.format(intro=intro, side=side) + f"""
+<section id="finder" data-src="data/{HISTORY_FILE}">
+  <div class="finder-bar">
+    <label class="vh" for="q">Search a fighter or event</label>
+    <input id="q" type="search" placeholder="Search a fighter or event, e.g. Jon Jones" autocomplete="off" spellcheck="false">
+    <label class="vh" for="show">Show</label>
+    <select id="show">
+      <option value="all">All fights</option><option value="bets">FightIQ bets only</option>
+      <option value="upsets">Upsets FightIQ called</option><option value="misses">Picks it got wrong</option>
+    </select>
+  </div>
+  <div class="chips"><span class="muted small">Try</span>{chips}</div>
+  <p id="summary" class="summary" aria-live="polite">Loading fights…</p>
+  <div class="preds fights">
+    <div class="frow phead"><span>Fight</span><span>FightIQ pick</span><span>Winner</span><span>Right?</span></div>
+    <div id="results"></div>
+  </div>
+  <button id="more" class="btn more" type="button" hidden>Show more</button>
+  <noscript><div class="empty">The fight finder needs JavaScript. All the data is in the JSON file above.</div></noscript>
+</section>
+<p class="muted small">Win chance = FightIQ's blend of the stats model and the bookmakers' odds where historical odds exist
+(2015 on), otherwise the stats model alone. Bets follow the site's rule (edge over 5%, no debuts) at a flat 1 unit, exactly as in
+the <a href="model.html">backtest</a>. Before 2006 there were few earlier UFC fights to learn from, so those picks are rough.</p>"""
 
 
 # ============================================================================ build
@@ -717,6 +769,14 @@ def build(state: Path = STATE, site: Path = SITE) -> Path:
     (site / "index.html").write_text(layout("This week", body, "week", updated=updated))
     (site / "record.html").write_text(layout("Record", record_body(rows, weeks), "record", updated=updated))
     (site / "model.html").write_text(layout("How it works", model_body(bt, meta), "model", updated=updated))
+
+    hist_path = state / HISTORY_FILE
+    hist = json.loads(hist_path.read_text(encoding="utf-8")) if hist_path.exists() else None
+    if hist:
+        (site / "data" / HISTORY_FILE).write_text(hist_path.read_text(encoding="utf-8"), encoding="utf-8")
+    (site / "assets" / "search.js").write_text(SEARCH_JS, encoding="utf-8")
+    (site / "search.html").write_text(layout("Past fights", search_body(hist), "search", updated=updated,
+                                             script="search.js" if hist else None))
     return site / "index.html"
 
 
@@ -814,10 +874,32 @@ tr.hl td{background:rgba(210,10,10,.06);font-weight:700}
 .tip{position:fixed;z-index:20;pointer-events:none;background:var(--head);color:#fff;font-size:12.5px;padding:6px 9px;border-radius:7px;
 max-width:280px;box-shadow:0 4px 12px rgba(0,0,0,.25);opacity:0;transition:opacity .08s}
 .foot{border-top:1px solid var(--line);padding:18px 0 28px;color:var(--muted);font-size:13px}.foot p{margin:4px 0}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.finder-bar{display:flex;gap:8px;flex-wrap:wrap}
+.finder-bar input,.finder-bar select{font:inherit;font-size:16px;color:var(--text);background:var(--surface);border:1px solid var(--line);
+border-radius:10px;padding:10px 12px;box-shadow:var(--shadow)}
+.finder-bar input{flex:1 1 260px;min-width:0}.finder-bar select{flex:0 1 auto;font-weight:600}
+.finder-bar input:focus,.finder-bar select:focus{outline:2px solid var(--series);outline-offset:1px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:10px 0 4px}
+.chip{font:inherit;font-size:13px;font-weight:700;color:var(--text);background:var(--surface);border:1px solid var(--line);
+border-radius:99px;padding:4px 11px;cursor:pointer}.chip:hover{border-color:var(--series);color:var(--series)}
+.summary{margin:14px 0 10px}
+.frow{display:grid;grid-template-columns:minmax(0,1.8fr) minmax(0,1.25fr) minmax(0,1.1fr) 52px;gap:12px;align-items:center;
+padding:10px 14px;border-top:1px solid var(--line)}
+.frow.phead{border-top:0}.frow > span:last-child{text-align:right}
+.frow .who b i{font-style:normal;font-weight:500;color:var(--muted)}
+.frow .who small{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.frow .tier{padding:1px 7px}.frow .tag{text-transform:none;white-space:nowrap;font-size:11.5px;padding:1px 7px}.frow .tag b{display:inline;font-weight:800}
+.frow .res{font-size:14px;min-width:30px;padding:3px 6px}
+.more{margin:12px auto 0;display:flex;cursor:pointer;font-size:14px}
 @media (max-width:640px){h1{font-size:23px}.prow{grid-template-columns:minmax(0,1fr) 44px 34px;row-gap:6px;column-gap:8px}
 .prow > span:nth-child(2){grid-column:1/-1;grid-row:2}.prow > span:nth-child(3){display:none}
 .phead{display:none}.prow > span:nth-child(4){grid-column:2;grid-row:1}.prow > span:nth-child(5){grid-column:3;grid-row:1}
-.bets{grid-template-columns:1fr}.legend{margin-left:0}.kpi .val{white-space:normal;font-size:19px;line-height:1.2}}
+.bets{grid-template-columns:1fr}.legend{margin-left:0}.kpi .val{white-space:normal;font-size:19px;line-height:1.2}
+.frow{grid-template-columns:minmax(0,1fr) minmax(0,1fr) 34px;row-gap:8px;column-gap:10px;align-items:start}.frow.phead{display:none}
+.frow > span:first-child{grid-column:1/-1}.frow > span:last-child{grid-column:3;grid-row:2}
+.frow [data-l]::before{content:attr(data-l);display:block;font-size:10.5px;font-weight:800;color:var(--muted);
+text-transform:uppercase;letter-spacing:.4px}}
 """
 
 JS = r"""
@@ -838,5 +920,107 @@ JS = r"""
   });
   document.querySelectorAll('time[datetime]').forEach(function(t){var d=new Date(t.getAttribute('datetime'));
     if(!isNaN(d))t.textContent=d.toLocaleString(undefined,{weekday:'short',day:'numeric',month:'short',hour:'numeric',minute:'2-digit'})});
+})();
+"""
+
+SEARCH_JS = r"""
+(function(){
+  var root=document.getElementById('finder');if(!root)return;
+  var q=document.getElementById('q'),show=document.getElementById('show'),list=document.getElementById('results'),
+      summary=document.getElementById('summary'),more=document.getElementById('more');
+  var PAGE=50,fights=[],matches=[],shown=0,timer;
+  var day=new Intl.DateTimeFormat(undefined,{day:'numeric',month:'short',year:'numeric',timeZone:'UTC'});
+  function norm(s){return String(s).normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim()}
+  function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+  function pct(p){return Math.round(p*100)+'%'}
+  function tier(p){return p>=0.7?'strong':p>=0.6?'lean':'toss'}
+  function units(u){return '<b class="'+(u>0?'good':u<0?'bad':'')+'">'+(u>0?'+':'')+u.toFixed(2)+'u</b>'}
+
+  function load(d){
+    fights=d.fights.map(function(r){
+      var e=d.events[r[0]],p=r[5]!=null?r[5]:r[4];
+      var f={date:e[0],event:e[1],a:r[1],b:r[2],res:r[3],oa:r[6],ob:r[7],bet:r[8],debut:r[9],
+             div:d.divisions[r[10]],method:d.methods[r[11]]};
+      if(p!=null){f.side=p>=0.5?'a':'b';f.p=p>=0.5?p:1-p}
+      f.winner=f.res===1?'a':f.res===0?'b':null;
+      f.right=f.side&&f.winner?f.side===f.winner:null;
+      if(f.side&&f.oa&&f.ob){f.odds=f.side==='a'?f.oa:f.ob;f.dog=f.odds>(f.side==='a'?f.ob:f.oa)}
+      if(f.bet){f.betOdds=f.bet==='a'?f.oa:f.ob;f.pnl=f.bet===f.winner?f.betOdds-1:-1}
+      f.hay=' '+norm(f.a)+' / '+norm(f.b)+' / '+norm(f.event)+' ';
+      return f;
+    }).reverse();
+    var params=new URLSearchParams(location.search);
+    if(params.get('q'))q.value=params.get('q');
+    if(params.get('show')&&show.querySelector('option[value="'+params.get('show')+'"]'))show.value=params.get('show');
+    run(false);
+  }
+
+  function run(remember){
+    var words=norm(q.value).split(' ').filter(Boolean),mode=show.value,phrase=' '+words.join(' ');
+    // a full name ("Jon Jones") matches as a phrase; otherwise every word can be anywhere ("McGregor Diaz")
+    var exact=words.length>1&&fights.some(function(f){return f.hay.indexOf(phrase)>=0});
+    matches=fights.filter(function(f){
+      if(exact){if(f.hay.indexOf(phrase)<0)return false}
+      else for(var i=0;i<words.length;i++)if(f.hay.indexOf(' '+words[i])<0)return false;
+      if(mode==='bets')return !!f.bet;
+      if(mode==='upsets')return f.dog&&f.right;
+      if(mode==='misses')return f.right===false;
+      return true;
+    });
+    if(mode==='upsets')matches.sort(function(x,y){return y.odds-x.odds});
+    shown=0;list.innerHTML='';page();summarise();
+    if(remember!==false){
+      var url=new URL(location.href);
+      words.length?url.searchParams.set('q',q.value.trim()):url.searchParams.delete('q');
+      mode!=='all'?url.searchParams.set('show',mode):url.searchParams.delete('show');
+      history.replaceState(null,'',url);
+    }
+  }
+
+  function summarise(){
+    var n=matches.length,picked=0,right=0,bets=0,won=0;
+    matches.forEach(function(f){if(f.right!=null){picked++;if(f.right)right++}if(f.bet){bets++;won+=f.pnl}});
+    if(!n){summary.innerHTML='No fights found. Try just a surname, like <b>Holloway</b>.';return}
+    var mode=show.value,s='<b>'+n.toLocaleString()+'</b> fight'+(n===1?'':'s');
+    if(mode==='upsets')s='<b>'+n.toLocaleString()+'</b> upset'+(n===1?'':'s')+' FightIQ called: it backed the betting underdog and the underdog won. Biggest odds first';
+    else if(mode==='misses')s+=' FightIQ got wrong';
+    else if(picked)s+=' · FightIQ picked the winner in <b>'+right.toLocaleString()+' of '+picked.toLocaleString()+'</b> ('+pct(right/picked)+')';
+    if(bets)s+=' · '+bets+' bet'+(bets===1?'':'s')+', '+units(won)+' at 1u each';
+    summary.innerHTML=s;
+  }
+
+  function name(f,side){return side==='a'?f.a:f.b}
+
+  function row(f){
+    var meta=day.format(new Date(f.date+'T00:00:00Z'))+' · '+esc(f.event)+' · '+esc(f.div)+(f.debut?' <span class="tag">Debut</span>':'');
+    var pick='<b class="muted">No pick</b><small>nothing earlier to learn from</small>';
+    if(f.side){
+      pick='<b>'+esc(name(f,f.side))+'</b><small><span class="tier '+tier(f.p)+'">'+pct(f.p)+'</span>'
+          +(f.odds?' odds '+f.odds.toFixed(2):'')
+          +(f.bet?' <span class="tag accent">Bet '+esc(name(f,f.bet).split(' ').pop())+' @ '+f.betOdds.toFixed(2)+' · '+units(f.pnl)+'</span>':'')
+          +'</small>';
+    }
+    var won=f.winner?'<b>'+esc(name(f,f.winner))+'</b>':'<b>'+(f.res===0.5?'Draw':'No contest')+'</b>';
+    var badge=f.right==null?'<span class="res void" title="No pick, draw or no contest">–</span>':
+      f.right?'<span class="res win" title="FightIQ was right">✓</span>':'<span class="res loss" title="FightIQ was wrong">✗</span>';
+    return '<div class="frow"><span class="who"><b>'+esc(f.a)+' <i>vs</i> '+esc(f.b)+'</b><small>'+meta+'</small></span>'
+      +'<span class="who" data-l="FightIQ pick">'+pick+'</span>'
+      +'<span class="who" data-l="Winner">'+won+'<small>'+esc(f.method)+'</small></span>'
+      +'<span>'+badge+'</span></div>';
+  }
+
+  function page(){
+    list.insertAdjacentHTML('beforeend',matches.slice(shown,shown+PAGE).map(row).join(''));
+    shown=Math.min(shown+PAGE,matches.length);
+    more.hidden=shown>=matches.length;
+    if(!more.hidden)more.textContent='Show more ('+(matches.length-shown).toLocaleString()+' left)';
+  }
+
+  q.addEventListener('input',function(){clearTimeout(timer);timer=setTimeout(run,150)});
+  show.addEventListener('change',function(){run()});
+  more.addEventListener('click',page);
+  root.querySelectorAll('.chip').forEach(function(c){c.addEventListener('click',function(){q.value=c.textContent;run();q.focus()})});
+  fetch(root.getAttribute('data-src')).then(function(r){if(!r.ok)throw new Error(r.status);return r.json()}).then(load)
+    .catch(function(){summary.textContent="Couldn't load the fight data. Please refresh the page."});
 })();
 """

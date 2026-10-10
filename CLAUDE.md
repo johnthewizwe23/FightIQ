@@ -49,4 +49,5 @@ and deploys `site/` to GitHub Pages. Published picks are a public record: never 
 `data.py` (download/clean ufcstats data) · `features.py` (point-in-time stats, Elo) · `model.py`
 (symmetric logistic regression) · `evaluate.py` (walk-forward backtest, market blend) · `card.py`
 (ufcstats scraper) · `odds.py` (The Odds API) · `predict.py` · `tracking.py` · `workbook.py` (Excel) ·
-`report.py` (PDF) · `site.py` (website) · `schedule.py` (launchd) · `cli.py`. User guide: `docs/FightIQ_Weekly_Guide.pdf`.
+`report.py` (PDF) · `site.py` (website) · `history.py` (walk-forward pick for every past fight, the site's
+"Past fights" search, written to `site_data/fight_history.json` on every site run) · `schedule.py` (launchd) · `cli.py`. User guide: `docs/FightIQ_Weekly_Guide.pdf`.
