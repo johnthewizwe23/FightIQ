@@ -5,49 +5,67 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Past fights · UFC FightIQ</title>
 <meta name="description" content="UFC FightIQ: free, fully transparent UFC fight predictions, value bets and a public track record.">
+<meta name="theme-color" content="#f5f1e8">
 <link rel="icon" href="assets/logo.svg" type="image/svg+xml">
-<link rel="stylesheet" href="assets/style.css">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,600;0,700;0,800;1,800&family=Barlow:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="assets/style.css?v=0b513b2aa2">
+<script>try{var t=localStorage.getItem("fightiq-theme");if(t)document.documentElement.setAttribute("data-theme",t)}catch(e){}</script>
 </head>
 <body>
 <header class="top">
   <div class="wrap top-in">
-    <a class="brand" href="index.html"><svg class="logo" viewBox="0 0 40 40" aria-hidden="true"><polygon points="37.55,27.27 27.27,37.55 12.73,37.55 2.45,27.27 2.45,12.73 12.73,2.45 27.27,2.45 37.55,12.73" fill="var(--red)"/><polygon points="33.86,25.74 25.74,33.86 14.26,33.86 6.14,25.74 6.14,14.26 14.26,6.14 25.74,6.14 33.86,14.26" fill="#0e0f13"/><text x="20" y="25.5" text-anchor="middle" font-size="14" font-weight="800" fill="#fff" font-family="Inter,Helvetica,Arial,sans-serif">IQ</text></svg><span><small>UFC</small>FIGHT<b>IQ</b></span></a>
-    <nav><a href="index.html">This week</a><a href="record.html">Record</a><a href="search.html" class="on">Past fights</a><a href="model.html">How it works</a></nav>
+    <a class="brand" href="index.html" aria-label="FightIQ home"><svg class="logo" viewBox="0 0 40 40" aria-hidden="true"><polygon points="38.02,27.46 27.46,38.02 12.54,38.02 1.98,27.46 1.98,12.54 12.54,1.98 27.46,1.98 38.02,12.54" fill="#C8102E"/><polygon points="34.32,25.93 25.93,34.32 14.07,34.32 5.68,25.93 5.68,14.07 14.07,5.68 25.93,5.68 34.32,14.07" fill="#17140F"/><text x="20" y="25.6" text-anchor="middle" font-size="15" font-weight="800" fill="#fff" font-family="Barlow Condensed,Arial Narrow,Helvetica,sans-serif">IQ</text></svg><span class="word"><small>UFC predictions</small>FIGHT<b>IQ</b></span></a>
+    <nav aria-label="Main"><a href="index.html">This week</a><a href="record.html">Record</a><a href="search.html" class="on" aria-current="page">Past fights</a><a href="model.html">How it works</a></nav>
+    <button class="theme" type="button" aria-label="Switch light or dark mode"><span class="ico moon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg></span><span class="ico sun"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2.5M12 19.5V22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M2 12h2.5M19.5 12H22M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/></svg></span></button>
   </div>
 </header>
 <main class="wrap">
-<section class="hero"><div><h1>Past fights</h1>
-<p class="muted">Search 8,923 UFC fights from 1994 to October 2026 and see who FightIQ would have picked. Every pick uses only what was known before the fight: each year is predicted by a model trained only on earlier years. No hindsight.</p></div><div class="hero-side"><a class="btn" href="data/fight_history.json"><span class="ico"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v6c0 1.7 3.1 3 7 3s7-1.3 7-3V6"/><path d="M5 12v6c0 1.7 3.1 3 7 3s7-1.3 7-3v-6"/></svg></span>JSON</a></div></section>
+<section class="hero"><div><p class="kicker"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.3-4.3"/></svg></span>Fight finder</p><h1>Past fights &amp; events</h1><p class="lede">8,923 UFC fights and 791 events, 1994 to October 2026. See who FightIQ would have picked and how every card went. Each pick uses only what was known before the fight: every year is predicted by a model trained only on earlier years. No hindsight.</p></div><div class="hero-side"><a class="btn" href="data/fight_history.json"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v6c0 1.7 3.1 3 7 3s7-1.3 7-3V6"/><path d="M5 12v6c0 1.7 3.1 3 7 3s7-1.3 7-3v-6"/></svg></span>JSON</a></div></section>
 <section id="finder" data-src="data/fight_history.json">
+  <div class="tabs" role="tablist" aria-label="View">
+    <button type="button" role="tab" class="tab" data-view="fights" aria-selected="true"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 12V8a5 5 0 0 1 5-5H14a5 5 0 0 1 5 5v4.5a4.5 4.5 0 0 1-4.5 4.5h-4A4 4 0 0 1 6.5 13z"/><path d="M6.5 12.5H10a2.2 2.2 0 0 0 0-4.4H6.5"/><path d="M8.5 17v4h8v-4"/></svg></span>Fights</button>
+    <button type="button" role="tab" class="tab" data-view="events" aria-selected="false"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg></span>Events</button>
+  </div>
   <div class="finder-bar">
-    <label class="vh" for="q">Search a fighter or event</label>
-    <input id="q" type="search" placeholder="Search a fighter or event, e.g. Jon Jones" autocomplete="off" spellcheck="false">
+    <div class="search"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.3-4.3"/></svg></span><label class="vh" for="q">Search a fighter or event</label>
+    <input id="q" type="search" placeholder="Search a fighter or event, e.g. Jon Jones" autocomplete="off" spellcheck="false"></div>
     <label class="vh" for="show">Show</label>
     <select id="show">
       <option value="all">All fights</option><option value="bets">FightIQ bets only</option>
       <option value="upsets">Upsets FightIQ called</option><option value="misses">Picks it got wrong</option>
     </select>
+    <label class="vh" for="sort">Sort events</label>
+    <select id="sort" hidden>
+      <option value="new">Newest first</option><option value="best">Best FightIQ cards</option>
+      <option value="worst">Worst FightIQ cards</option>
+    </select>
   </div>
-  <div class="chips"><span class="muted small">Try</span><button class="chip" type="button">Jon Jones</button><button class="chip" type="button">Conor McGregor</button><button class="chip" type="button">Amanda Nunes</button><button class="chip" type="button">Israel Adesanya</button><button class="chip" type="button">Max Holloway</button><button class="chip" type="button">UFC 300</button></div>
+  <div class="chips"><span>Try</span><button class="chip" type="button">Jon Jones</button><button class="chip" type="button">Conor McGregor</button><button class="chip" type="button">Amanda Nunes</button><button class="chip" type="button">Israel Adesanya</button><button class="chip" type="button">Max Holloway</button><button class="chip" type="button">UFC 300</button></div>
   <p id="summary" class="summary" aria-live="polite">Loading fights…</p>
-  <div class="preds fights">
-    <div class="frow phead"><span>Fight</span><span>FightIQ pick</span><span>Winner</span><span>Right?</span></div>
+  <div class="list">
+    <div class="frow fhead" id="head-fights"><span>Fight</span><span>FightIQ pick</span><span>Winner</span><span>Right?</span></div>
+    <div class="erow ehead" id="head-events" hidden><span>Event</span><span>Picks right</span><span>Hit rate</span>
+    <span>Avg confidence</span><span>Bets</span></div>
     <div id="results"></div>
   </div>
   <button id="more" class="btn more" type="button" hidden>Show more</button>
   <noscript><div class="empty">The fight finder needs JavaScript. All the data is in the JSON file above.</div></noscript>
 </section>
-<p class="muted small">Win chance = FightIQ's blend of the stats model and the bookmakers' odds where historical odds exist
-(2015 on), otherwise the stats model alone. Bets follow the site's rule (edge over 5%, no debuts) at a flat 1 unit, exactly as in
-the <a href="model.html">backtest</a>. Before 2006 there were few earlier UFC fights to learn from, so those picks are rough.</p>
+<p class="note">Win chance = FightIQ's blend of the stats model and the bookmakers' odds where historical odds exist (2015 on),
+otherwise the stats model alone. Hit rate = share of a card's fights (with a winner) where FightIQ's pick won; avg confidence =
+FightIQ's average win chance for its picks on that card. Bets follow the site's rule (edge over 5%, no debuts) at a flat 1 unit,
+exactly as in the <a href="model.html">backtest</a>. Before 2006 there were few earlier UFC fights to learn from, so those picks
+are rough.</p>
 </main>
 <footer class="foot">
-  <div class="wrap">
-    <p>Updated <time datetime="2026-10-10T03:53:13+00:00">2026-10-10 03:53 UTC</time> · Free and fully transparent: every pick is published before the fight, locked at the first bout, and kept in the
-    <a href="https://github.com/johnthewizwe23/FightIQ">public code repository</a>.</p>
-    <p>Not financial advice. Bet responsibly · 18+ · Gambling Help: <a href="https://www.gamblinghelponline.org.au">gamblinghelponline.org.au</a>, 1800 858 858.</p>
+  <div class="wrap foot-in">
+    <div class="foot-brand"><svg class="logo" viewBox="0 0 40 40" aria-hidden="true"><polygon points="38.02,27.46 27.46,38.02 12.54,38.02 1.98,27.46 1.98,12.54 12.54,1.98 27.46,1.98 38.02,12.54" fill="#C8102E"/><polygon points="34.32,25.93 25.93,34.32 14.07,34.32 5.68,25.93 5.68,14.07 14.07,5.68 25.93,5.68 34.32,14.07" fill="#17140F"/><text x="20" y="25.6" text-anchor="middle" font-size="15" font-weight="800" fill="#fff" font-family="Barlow Condensed,Arial Narrow,Helvetica,sans-serif">IQ</text></svg><p><b>FightIQ is free and fully transparent.</b> Every pick is published before the fight,
+    locked at the first bout and kept in the <a href="https://github.com/johnthewizwe23/FightIQ">public code repository</a>.</p></div>
+    <p class="foot-small">Updated <time datetime="2026-10-10T04:08:39+00:00">2026-10-10 04:08 UTC</time>. <span class="age">18+</span> Not financial advice. Bet responsibly. Gambling Help:
+    <a href="https://www.gamblinghelponline.org.au">gamblinghelponline.org.au</a> · 1800 858 858</p>
   </div>
 </footer>
-<script src="assets/app.js"></script><script src="assets/search.js"></script>
+<script src="assets/app.js?v=ef9beb86a2"></script><script src="assets/search.js?v=5d0a9cedad"></script>
 </body>
 </html>

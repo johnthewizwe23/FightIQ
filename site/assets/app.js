@@ -16,4 +16,9 @@
   });
   document.querySelectorAll('time[datetime]').forEach(function(t){var d=new Date(t.getAttribute('datetime'));
     if(!isNaN(d))t.textContent=d.toLocaleString(undefined,{weekday:'short',day:'numeric',month:'short',hour:'numeric',minute:'2-digit'})});
+  var theme=document.querySelector('.theme');
+  if(theme)theme.addEventListener('click',function(){
+    var root=document.documentElement,next=root.getAttribute('data-theme')==='dark'?'light':'dark';
+    root.setAttribute('data-theme',next);try{localStorage.setItem('fightiq-theme',next)}catch(e){}
+  });
 })();
