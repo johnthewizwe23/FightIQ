@@ -1,0 +1,82 @@
+# Runs FightIQ in the cloud and publishes the website (GitHub Pages).
+#  - daily 08:00 UTC (18:00 AEST): new card + latest odds until the picks lock, and results
+#  - Saturday 14:00 UTC: last odds update before a US Saturday-night card
+#  - 1st of the month: refit the model first
+# Needs: repository secret ODDS_API_KEY, and Settings > Pages > Source = "GitHub Actions".
+name: FightIQ website
+
+on:
+  schedule:
+    - cron: "0 8 * * *"
+    - cron: "0 14 * * 6"
+    - cron: "30 6 1 * *"
+  workflow_dispatch:
+    inputs:
+      retrain:
+        description: "Refit the model before updating"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: fightiq-site
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install
+        run: pip install -r requirements.txt
+
+      - name: Browser for ufcstats.com (optional; falls back to the odds feed)
+        continue-on-error: true
+        run: python -m playwright install chromium
+
+      - name: Refit the model (monthly)
+        if: github.event.schedule == '30 6 1 * *' || inputs.retrain
+        run: python -m fightiq train
+
+      - name: Update picks, odds, results and pages
+        env:
+          ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
+        run: python -m fightiq site
+
+      - name: Save to the repository (public, timestamped history)
+        run: |
+          git config user.name "fightiq-bot"
+          git config user.email "fightiq-bot@users.noreply.github.com"
+          git add site site_data models reports
+          if git diff --cached --quiet; then
+            echo "nothing changed"
+          else
+            git commit -m "FightIQ update $(date -u +'%Y-%m-%d %H:%M UTC')"
+            git pull --rebase origin "${GITHUB_REF_NAME}"
+            git push origin "HEAD:${GITHUB_REF_NAME}"
+          fi
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    needs: update
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

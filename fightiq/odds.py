@@ -142,3 +142,64 @@ def add_live_odds(card: pd.DataFrame, region: str = DEFAULT_REGION, bookmakers: 
     for _, r in missing.iterrows():
         print(f"  no odds yet for {r['fighter_a']} vs {r['fighter_b']}")
     return card
+
+
+# ----------------------------------------------------------------------------- card from the odds feed
+
+def _known_fighters(fights: pd.DataFrame) -> dict[str, tuple[str, pd.Timestamp]]:
+    """Normalised name -> (name as in the fight data, date of their last UFC bout)."""
+    long = pd.concat([fights[["date", "name_a"]].set_axis(["date", "name"], axis=1),
+                      fights[["date", "name_b"]].set_axis(["date", "name"], axis=1)]).sort_values("date")
+    return {_clean(n): (n, d) for n, d in zip(long["name"], long["date"])}
+
+
+def _match_known(name: str, known: dict, keys: list[str]) -> tuple[str, pd.Timestamp] | None:
+    key = _clean(name)
+    if key in known:
+        return known[key]
+    for k in difflib.get_close_matches(key, keys, n=3, cutoff=0.8):
+        if similarity(name, known[k][0]) >= 0.88:
+            return known[k]
+    return None
+
+
+def card_from_feed(events: list[dict], fights: pd.DataFrame, now: pd.Timestamp | None = None,
+                   active_days: int = 450, min_bouts: int = 3):
+    """Next UFC card from The Odds API's MMA feed (which also lists other promotions).
+
+    A bout counts as UFC when both fighters have UFC bouts on record, or one does and fought in the UFC
+    within `active_days` (the other is a debutant). The earliest US date with at least `min_bouts` such
+    bouts is the card. Names are switched to the fight data's spelling where they match.
+    Returns (card, event name, event date, earliest start time in UTC) or None.
+    """
+    now = pd.Timestamp.now(tz="UTC") if now is None else (now.tz_convert("UTC") if now.tzinfo else
+                                                           now.tz_localize("UTC"))
+    known = _known_fighters(fights)
+    keys = list(known)
+    prices = best_prices(events)
+    rows = []
+    for _, p in prices.iterrows():
+        start = pd.Timestamp(p["commence"]) if p["commence"] else None
+        if start is None or start < now - pd.Timedelta(hours=6):
+            continue
+        ma, mb = _match_known(p["fighter_a"], known, keys), _match_known(p["fighter_b"], known, keys)
+        recent = lambda m: m is not None and (start.tz_localize(None) - m[1]).days <= active_days
+        if not ((ma and mb) or recent(ma) or recent(mb)):
+            continue
+        rows.append({"fighter_a": ma[0] if ma else p["fighter_a"], "fighter_b": mb[0] if mb else p["fighter_b"],
+                     "odds_a": p["odds_a"], "odds_b": p["odds_b"],
+                     "odds_source": f"{p['fighter_a']}: {p['odds_a']:.2f} ({p['book_a']}) | "
+                                    f"{p['fighter_b']}: {p['odds_b']:.2f} ({p['book_b']})",
+                     "start": start, "day": start.tz_convert("America/New_York").date()})
+    if not rows:
+        return None
+    bouts = pd.DataFrame(rows)
+    counts = bouts.groupby("day").size()
+    days = sorted(d for d, n in counts.items() if n >= min_bouts)
+    if not days:
+        return None
+    card = bouts[bouts["day"] == days[0]].sort_values("start", ascending=False).reset_index(drop=True)
+    main = card.iloc[0]
+    event = f"UFC: {main['fighter_a'].split()[-1]} vs. {main['fighter_b'].split()[-1]}"
+    return (card[["fighter_a", "fighter_b", "odds_a", "odds_b", "odds_source"]], event,
+            pd.Timestamp(days[0]), card["start"].min())
