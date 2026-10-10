@@ -58,13 +58,18 @@ def attach_odds(X: pd.DataFrame, odds: pd.DataFrame) -> pd.DataFrame:
 
 
 def walk_forward(X: pd.DataFrame, features: list[str], C: float = 1.0,
-                 years=TEST_YEARS, train_start: str = TRAIN_START) -> pd.DataFrame:
-    """Out-of-sample predictions for each test year from a model fit on prior years."""
+                 years=TEST_YEARS, train_start: str = TRAIN_START, all_results: bool = False) -> pd.DataFrame:
+    """Out-of-sample predictions for each test year from a model fit on prior years.
+
+    The model is always fit on decided bouts; with `all_results` the test year's draws and no contests
+    are scored as well.
+    """
     dec = X[X["result_a"].isin([0.0, 1.0]) & (X["date"] >= train_start)]
+    scored = X if all_results else dec
     parts = []
     for year in years:
         train = dec[dec["date"] < f"{year}-01-01"]
-        test = dec[dec["date"].dt.year == year].copy()
+        test = scored[scored["date"].dt.year == year].copy()
         if test.empty:
             continue
         m = FightModel(features, C).fit(train)

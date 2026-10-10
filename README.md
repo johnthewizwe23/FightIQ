@@ -101,14 +101,17 @@ the newcomer's reach; those are never bet).
 ## Public website (fully automatic, free)
 
 `.github/workflows/fightiq-site.yml` runs FightIQ on GitHub every day at 08:00 UTC (plus Saturday 14:00 UTC)
-and publishes a website with three pages: **This week** (picks, win chances, value bets, PDF), **Record**
-(every pick and bet with results, units, ROI and a profit chart) and **How it works** (method, factors,
+and publishes a website with four pages: **This week** (picks, win chances, value bets, PDF), **Record**
+(every pick and bet with results, units, ROI and a profit chart), **Past fights** (search any UFC fight since 1994
+and see who the model would have picked, using only earlier fights) and **How it works** (method, factors,
 backtest and caveats).
 
 * The card comes from ufcstats.com when it can be read; otherwise from The Odds API feed (UFC bouts only).
 * Picks refresh with the latest odds until the first bout starts, then lock and never change. Every update is
   committed to `site_data/` (one JSON per card + `tracking.csv`), so the history is public and timestamped.
 * Results are filled in from the fight data once each event is over.
+* **Past fights** reads `site_data/fight_history.json`, rebuilt on every run: each year's fights are predicted by
+  a model trained only on earlier years (from 2015 on these are exactly the backtest's predictions and bets).
 
 One-time setup on github.com:
 
@@ -221,7 +224,8 @@ fightiq/
   odds.py       live odds from The Odds API, and the card from its feed
   workbook.py   the Excel workbook (Predictor, Tracking, Fighters, ...)
   report.py     the predictions + bets PDF
-  site.py       the public website (this week, record, how it works)
+  site.py       the public website (this week, record, past fights, how it works)
+  history.py    walk-forward pick for every past fight (the website's fight finder)
   schedule.py   weekly automatic run on a Mac
   cli.py        command line entry point (python -m fightiq ...)
 tests/          pytest suite (python -m pytest)

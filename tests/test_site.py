@@ -29,9 +29,11 @@ def test_build_with_no_state_shows_coming_soon(tmp_path):
     assert "Next card coming soon" in index
     record = (out / "record.html").read_text()
     assert "The record starts with the first card" in record
-    for page in ("index.html", "record.html", "model.html"):
+    for page in ("index.html", "record.html", "model.html", "search.html"):
         text = (out / page).read_text()
         assert ">None<" not in text and "NaN" not in text
+    search = (out / "search.html").read_text()
+    assert "appears after the next daily update" in search and "search.js" not in search
 
 
 def test_build_with_a_week_and_settled_results(tmp_path):
@@ -62,3 +64,20 @@ def test_never_publishes_a_card_that_has_started(tmp_path):
     result = site._publish(card, "UFC Late", pd.Timestamp("2026-10-10"), pd.Timestamp("2026-10-10T23:00:00Z"),
                            "odds feed", tmp_path / "state", tmp_path / "site", now, [], predict_card=None)
     assert result is None and not list((tmp_path / "state" / "weeks").glob("*.json"))
+
+
+def test_build_with_fight_history(tmp_path):
+    from fightiq import history
+    from tests.test_history import synthetic_history
+
+    state, out = tmp_path / "state", tmp_path / "site"
+    state.mkdir()
+    P = history.predictions(synthetic_history())
+    (state / site.HISTORY_FILE).write_text(history.to_json(P), encoding="utf-8")
+    site.build(state, out)
+    search = (out / "search.html").read_text()
+    assert f"Search {len(P):,} UFC fights from 2003 to December 2017" in search
+    assert 'href="search.html" class="on"' in search and "assets/search.js" in search
+    assert json.loads((out / "data" / site.HISTORY_FILE).read_text())["fights_to"] == "2017-12-15"
+    assert (out / "assets" / "search.js").exists()
+    assert 'href="search.html"' in (out / "index.html").read_text()
