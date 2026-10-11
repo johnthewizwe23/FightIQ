@@ -30,8 +30,9 @@ nav a:hover{color:var(--red)}nav a.on{color:var(--ink);border-bottom-color:var(-
 display:grid;place-items:center;cursor:pointer;padding:0}
 .theme .ico{color:var(--ink-2)}.theme .sun,[data-theme="dark"] .theme .moon{display:none}[data-theme="dark"] .theme .sun{display:inline-flex}
 
-main{padding:36px 20px 56px}
+main.wrap{padding:30px 20px 56px}
 section{margin:32px 0}
+main.wrap > :first-child{margin-top:0}
 h1{font:800 48px/.96 var(--display);letter-spacing:.2px;text-transform:uppercase;margin:8px 0 12px}
 h2{display:flex;align-items:center;flex-wrap:wrap;gap:8px;font:800 25px/1.1 var(--display);text-transform:uppercase;letter-spacing:.5px;
 margin:0 0 16px;padding-bottom:8px;border-bottom:2px solid var(--ink)}
@@ -42,7 +43,7 @@ h3{margin:0;font:700 22px/1.1 var(--display);letter-spacing:.2px}
 .lede{margin:0;max-width:690px;color:var(--ink-2);font-size:17px}
 .note{color:var(--muted);font-size:14px;margin:12px 0 0}
 
-.hero{display:flex;justify-content:space-between;align-items:flex-end;gap:16px 24px;flex-wrap:wrap;margin-top:0;
+.hero{display:flex;justify-content:space-between;align-items:flex-end;gap:16px 24px;flex-wrap:wrap;margin-top:6px;
 padding-bottom:24px;border-bottom:1px solid var(--line)}
 .hero-side,.poster-side{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .btn{display:inline-flex;align-items:center;gap:7px;background:var(--ink);color:var(--paper);border:0;padding:11px 17px 10px;
@@ -145,6 +146,13 @@ tbody tr:hover td{background:var(--card-2)}tr.hl td{background:var(--red-soft);f
 .tip{position:fixed;z-index:20;pointer-events:none;background:var(--ink);color:var(--paper);font-size:13px;padding:7px 10px;border-radius:4px;
 max-width:280px;box-shadow:0 6px 18px rgba(0,0,0,.18);opacity:0;transition:opacity .08s}
 
+.result-line{display:flex;align-items:center;gap:8px;margin:10px 0 0;font-size:15px;color:var(--ink-2)}
+.lastcard{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:6px 18px;background:var(--card);border:1px solid var(--line);
+border-left:5px solid var(--blue);border-radius:4px;padding:12px 18px;margin-bottom:18px;text-decoration:none;color:var(--ink)}
+.lastcard:hover{border-color:var(--line-2);color:var(--ink)}.lastcard b{font:700 19px/1.15 var(--display)}
+.lastcard .lc-line{grid-column:1/3;color:var(--ink-2);font-size:14.5px}.lastcard .lc-line b{font:inherit;font-weight:700}
+.lastcard .lc-go{grid-row:1/3;grid-column:3;display:inline-flex;align-items:center;gap:6px;font:700 15px/1 var(--display);
+letter-spacing:.9px;text-transform:uppercase;color:var(--red-ink)}
 .foot{border-top:1px solid var(--line);background:var(--card);margin-top:16px}
 .foot-in{display:grid;gap:12px;padding:24px 20px 30px}
 .foot-brand{display:flex;gap:12px;align-items:flex-start}.foot-brand .logo{width:32px;height:32px}
@@ -189,7 +197,7 @@ text-decoration:underline;text-decoration-color:var(--line-2);text-underline-off
 .more{margin:16px auto 0;display:flex}
 
 @media (max-width:760px){
-.wrap{padding:0 16px}main{padding:26px 16px 44px}
+.wrap{padding:0 16px}main.wrap{padding:22px 16px 44px}
 .top-in{flex-wrap:wrap;gap:0 12px;min-height:0;padding-top:10px}.word{font-size:26px}
 .brand{order:1}.theme{order:2}nav{order:3;width:calc(100% + 32px);overflow-x:auto;scrollbar-width:none;margin:4px -16px 0;padding:0 8px}
 nav::-webkit-scrollbar{display:none}nav a{padding:12px 10px 10px;font-size:16px;white-space:nowrap}
@@ -199,6 +207,7 @@ h1{font-size:38px}h2{font-size:22px}.legend{margin-left:0}
 .cell:nth-child(-n+2){border-top:0}.cell:nth-child(even){border-left:1px solid var(--line)}
 .cell .val{font-size:25px;white-space:normal}
 .slips{grid-template-columns:1fr}
+.lastcard{grid-template-columns:1fr}.lastcard .lc-line{grid-column:1}.lastcard .lc-go{grid-row:auto;grid-column:1}
 .tape-head,.fhead,.ehead{display:none}
 .bout-row{grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-areas:"pick opp" "split split" "call call";row-gap:10px;padding:14px 16px}
 .corner.pick{grid-area:pick}.corner.opp{grid-area:opp}.split{grid-area:split}.call{grid-area:call;justify-content:space-between}
