@@ -1,6 +1,7 @@
 # Runs FightIQ in the cloud and publishes the website (GitHub Pages).
 #  - daily 08:00 UTC (18:00 AEST): new card + latest odds until the picks lock, and results
-#  - Saturday 14:00 UTC: last odds update before a US Saturday-night card
+#  - Saturday 14:00 and 19:00 UTC: last odds updates before a US Saturday-night card
+#  - Sunday and Monday every 4 hours: settle results as soon as the fight data has them
 #  - 1st of the month: refit the model first
 # Needs: repository secret ODDS_API_KEY, and Settings > Pages > Source = "GitHub Actions".
 name: FightIQ website
@@ -9,6 +10,8 @@ on:
   schedule:
     - cron: "0 8 * * *"
     - cron: "0 14 * * 6"
+    - cron: "0 19 * * 6"        # Saturday evening: freshest odds before most cards lock
+    - cron: "0 */4 * * 0,1"     # Sunday and Monday every 4 hours: results show up soon after each event
     - cron: "30 6 1 * *"
   workflow_dispatch:
     inputs:

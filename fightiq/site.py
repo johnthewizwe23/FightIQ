@@ -150,6 +150,9 @@ def update(state: Path = STATE, site: Path = SITE, scrape: bool = True, now: pd.
     else:
         print("no upcoming UFC card found - results only this run")
 
+    dropped = sync_tracking(rows, load_weeks(state))
+    if dropped:
+        print(f"removed {dropped} tracking rows left over from an earlier version of a card")
     n = tr.settle(rows, fights)
     print(f"results filled in: {n}")
     write_tracking(tracking_csv, rows)
@@ -158,6 +161,26 @@ def update(state: Path = STATE, site: Path = SITE, scrape: bool = True, now: pd.
     except Exception as exc:  # never let the fight finder hold up the picks
         print(f"fight finder not updated: {exc}")
     return week
+
+
+def _bout_key(day: date, a: str, b: str) -> tuple:
+    return day, frozenset(odds_mod._clean(n) for n in (a, b))
+
+
+def sync_tracking(rows: list[list], weeks: list[dict]) -> int:
+    """Keep each published card's tracking rows identical to its bouts.
+
+    A card can be republished with different spellings before it locks (bookmaker names first, then the official
+    ufcstats names). Rows for a card's date that are not one of its bouts are leftovers and are removed, so no bout
+    is counted twice. The card files themselves (the locked picks) are never touched.
+    """
+    cards = {}
+    for w in weeks:
+        day = date.fromisoformat(w["date"])
+        cards[day] = {_bout_key(day, b["pick"], b["opponent"]) for b in w["bouts"]}
+    before = len(rows)
+    rows[:] = [r for r in rows if (k := tr.row_key(r)) is None or k[0] not in cards or k in cards[k[0]]]
+    return before - len(rows)
 
 
 def _first_start(events, card, day) -> pd.Timestamp | None:
@@ -403,6 +426,7 @@ def week_body(week: dict, rows: list[list], depth: int) -> str:
     <h1 class="bout" aria-label="{esc(week["event"])}">{title}</h1>
     <p class="meta">Card from {esc(week["source"])} · first published
     <time datetime="{esc(week["published_at"])}">{esc(week["published_at"][:10])}</time></p>
+    {f'<p class="result-line">{icon("trophy")}<span>{results_line(week, rows)}</span></p>' if locked else ""}
   </div>
   <div class="poster-side">{status}<a class="btn" href="{up}reports/{esc(week["slug"])}.pdf">{icon("doc")}PDF report</a></div>
 </section>"""
@@ -443,6 +467,40 @@ def week_body(week: dict, rows: list[list], depth: int) -> str:
 
 
 RESULT_TITLES = {"W": "Won", "L": "Lost", "D": "Draw", "NC": "No contest", "Cancelled": "Cancelled"}
+
+
+def card_results(week: dict, rows: list[list]) -> dict:
+    """W-L for the card's picks and its value bets (units at the posted stakes), from the settled tracking rows."""
+    res = results_by_fight(rows)
+    day = date.fromisoformat(week["date"])
+    out = {"wins": 0, "losses": 0, "bet_wins": 0, "bet_losses": 0, "units": 0.0, "settled": 0}
+    for b in week["bouts"]:
+        r = res.get(_bout_key(day, b["pick"], b["opponent"]))
+        if not r or r[tr.PICK_RES] in (None, ""):
+            continue
+        out["settled"] += 1
+        out["wins"] += r[tr.PICK_RES] == "W"
+        out["losses"] += r[tr.PICK_RES] == "L"
+        if r[tr.BET_ON] and r[tr.STAKE] is not None and r[tr.BET_ODDS] is not None:
+            if r[tr.BET_RES] == "W":
+                out["bet_wins"] += 1
+                out["units"] += r[tr.STAKE] * (r[tr.BET_ODDS] - 1)
+            elif r[tr.BET_RES] == "L":
+                out["bet_losses"] += 1
+                out["units"] -= r[tr.STAKE]
+    return out
+
+
+def results_line(week: dict, rows: list[list]) -> str:
+    c = card_results(week, rows)
+    if not c["settled"]:
+        return "Results are added once the official fight stats are published, usually within a day."
+    bets = c["bet_wins"] + c["bet_losses"]
+    line = f'FightIQ went <b>{c["wins"]}-{c["losses"]}</b> on its picks'
+    if bets:
+        cls = "good" if c["units"] > 0 else "bad" if c["units"] < 0 else ""
+        line += f' · value bets <b>{c["bet_wins"]}-{c["bet_losses"]}</b>, <b class="{cls}">{c["units"]:+.2f}u</b>'
+    return line + "."
 
 
 def _badge(result: str | None) -> str:
@@ -844,6 +902,13 @@ def build(state: Path = STATE, site: Path = SITE) -> Path:
     current = upcoming[0] if upcoming else (weeks[-1] if weeks else None)
     if current:
         body = week_body(current, rows, depth=0)
+        previous = [w for w in weeks if w["date"] < current["date"]]
+        if previous:
+            last = previous[-1]
+            body = (f'<a class="lastcard" href="weeks/{esc(last["slug"])}.html"><span class="kicker">{icon("trophy")}Last card · '
+                    f'{date.fromisoformat(last["date"]):%d %b %Y}</span><b>{esc(last["event"])}</b>'
+                    f'<span class="lc-line">{results_line(last, rows)}</span><span class="lc-go">See every result '
+                    f'{icon("arrow")}</span></a>') + body
     else:
         body = (hero("Between fight weeks", "Next card coming soon", "Picks for the next UFC card are published here as "
                      "soon as the card and odds are out (usually Thursday). Every pick is locked when the first fight starts.",
@@ -898,8 +963,9 @@ nav a:hover{color:var(--red)}nav a.on{color:var(--ink);border-bottom-color:var(-
 display:grid;place-items:center;cursor:pointer;padding:0}
 .theme .ico{color:var(--ink-2)}.theme .sun,[data-theme="dark"] .theme .moon{display:none}[data-theme="dark"] .theme .sun{display:inline-flex}
 
-main{padding:36px 20px 56px}
+main.wrap{padding:30px 20px 56px}
 section{margin:32px 0}
+main.wrap > :first-child{margin-top:0}
 h1{font:800 48px/.96 var(--display);letter-spacing:.2px;text-transform:uppercase;margin:8px 0 12px}
 h2{display:flex;align-items:center;flex-wrap:wrap;gap:8px;font:800 25px/1.1 var(--display);text-transform:uppercase;letter-spacing:.5px;
 margin:0 0 16px;padding-bottom:8px;border-bottom:2px solid var(--ink)}
@@ -910,7 +976,7 @@ h3{margin:0;font:700 22px/1.1 var(--display);letter-spacing:.2px}
 .lede{margin:0;max-width:690px;color:var(--ink-2);font-size:17px}
 .note{color:var(--muted);font-size:14px;margin:12px 0 0}
 
-.hero{display:flex;justify-content:space-between;align-items:flex-end;gap:16px 24px;flex-wrap:wrap;margin-top:0;
+.hero{display:flex;justify-content:space-between;align-items:flex-end;gap:16px 24px;flex-wrap:wrap;margin-top:6px;
 padding-bottom:24px;border-bottom:1px solid var(--line)}
 .hero-side,.poster-side{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .btn{display:inline-flex;align-items:center;gap:7px;background:var(--ink);color:var(--paper);border:0;padding:11px 17px 10px;
@@ -1013,6 +1079,13 @@ tbody tr:hover td{background:var(--card-2)}tr.hl td{background:var(--red-soft);f
 .tip{position:fixed;z-index:20;pointer-events:none;background:var(--ink);color:var(--paper);font-size:13px;padding:7px 10px;border-radius:4px;
 max-width:280px;box-shadow:0 6px 18px rgba(0,0,0,.18);opacity:0;transition:opacity .08s}
 
+.result-line{display:flex;align-items:center;gap:8px;margin:10px 0 0;font-size:15px;color:var(--ink-2)}
+.lastcard{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:6px 18px;background:var(--card);border:1px solid var(--line);
+border-left:5px solid var(--blue);border-radius:4px;padding:12px 18px;margin-bottom:18px;text-decoration:none;color:var(--ink)}
+.lastcard:hover{border-color:var(--line-2);color:var(--ink)}.lastcard b{font:700 19px/1.15 var(--display)}
+.lastcard .lc-line{grid-column:1/3;color:var(--ink-2);font-size:14.5px}.lastcard .lc-line b{font:inherit;font-weight:700}
+.lastcard .lc-go{grid-row:1/3;grid-column:3;display:inline-flex;align-items:center;gap:6px;font:700 15px/1 var(--display);
+letter-spacing:.9px;text-transform:uppercase;color:var(--red-ink)}
 .foot{border-top:1px solid var(--line);background:var(--card);margin-top:16px}
 .foot-in{display:grid;gap:12px;padding:24px 20px 30px}
 .foot-brand{display:flex;gap:12px;align-items:flex-start}.foot-brand .logo{width:32px;height:32px}
@@ -1057,7 +1130,7 @@ text-decoration:underline;text-decoration-color:var(--line-2);text-underline-off
 .more{margin:16px auto 0;display:flex}
 
 @media (max-width:760px){
-.wrap{padding:0 16px}main{padding:26px 16px 44px}
+.wrap{padding:0 16px}main.wrap{padding:22px 16px 44px}
 .top-in{flex-wrap:wrap;gap:0 12px;min-height:0;padding-top:10px}.word{font-size:26px}
 .brand{order:1}.theme{order:2}nav{order:3;width:calc(100% + 32px);overflow-x:auto;scrollbar-width:none;margin:4px -16px 0;padding:0 8px}
 nav::-webkit-scrollbar{display:none}nav a{padding:12px 10px 10px;font-size:16px;white-space:nowrap}
@@ -1067,6 +1140,7 @@ h1{font-size:38px}h2{font-size:22px}.legend{margin-left:0}
 .cell:nth-child(-n+2){border-top:0}.cell:nth-child(even){border-left:1px solid var(--line)}
 .cell .val{font-size:25px;white-space:normal}
 .slips{grid-template-columns:1fr}
+.lastcard{grid-template-columns:1fr}.lastcard .lc-line{grid-column:1}.lastcard .lc-go{grid-row:auto;grid-column:1}
 .tape-head,.fhead,.ehead{display:none}
 .bout-row{grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-areas:"pick opp" "split split" "call call";row-gap:10px;padding:14px 16px}
 .corner.pick{grid-area:pick}.corner.opp{grid-area:opp}.split{grid-area:split}.call{grid-area:call;justify-content:space-between}
