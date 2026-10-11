@@ -55,6 +55,9 @@ def test_build_with_a_week_and_settled_results(tmp_path):
     record = (out / "record.html").read_text()
     assert "1-1" in record and "+1.80u" in record
     assert (out / "weeks" / f"{past}_UFC-Test-Night.html").exists()
+    # home page shows the previous card's result; its own page shows it too
+    assert "Last card" in index and "went <b>1-1</b>" in index and "+1.80u" in index
+    assert "went <b>1-1</b>" in (out / "weeks" / f"{past}_UFC-Test-Night.html").read_text()
     assert (out / "data" / "weeks" / f"{upcoming}_UFC-Test-Night.json").exists()
 
 
@@ -82,3 +85,15 @@ def test_build_with_fight_history(tmp_path):
     assert json.loads((out / "data" / site.HISTORY_FILE).read_text())["fights_to"] == "2017-12-15"
     assert (out / "assets" / "search.js").exists()
     assert 'href="search.html"' in (out / "index.html").read_text()
+
+
+def test_sync_tracking_drops_rows_left_over_from_an_earlier_version_of_a_card():
+    day = "2026-10-10"
+    week = _week(day, f"{day}T21:00:00+00:00", [dict(BOUTS[0]), dict(BOUTS[1], pick="Loopy Godinez", opponent="Ketlen Souza")])
+    when = pd.Timestamp(day).to_pydatetime()
+    rows = [[when, "UFC Test Night", "Brendan Allen vs Christian Leroy Duncan", "Brendan Allen", 0.62, None, None, None, None, None],
+            [when, "UFC Test Night", "Lupita Godinez vs Ketlen Souza", "Lupita Godinez", 0.69, None, None, None, None, None],
+            [when, "UFC Test Night", "Loopy Godinez vs Ketlen Souza", "Loopy Godinez", 0.71, None, None, None, None, None],
+            [pd.Timestamp("2026-10-17").to_pydatetime(), "UFC Next", "A vs B", "A", 0.6, None, None, None, None, None]]
+    assert site.sync_tracking(rows, [week]) == 1
+    assert [r[tr.PICK] for r in rows] == ["Brendan Allen", "Loopy Godinez", "A"]
