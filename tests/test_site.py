@@ -97,3 +97,18 @@ def test_sync_tracking_drops_rows_left_over_from_an_earlier_version_of_a_card():
             [pd.Timestamp("2026-10-17").to_pydatetime(), "UFC Next", "A vs B", "A", 0.6, None, None, None, None, None]]
     assert site.sync_tracking(rows, [week]) == 1
     assert [r[tr.PICK] for r in rows] == ["Brendan Allen", "Loopy Godinez", "A"]
+
+
+def test_home_page_moves_to_the_next_card_once_it_is_published(tmp_path):
+    state, out = tmp_path / "state", tmp_path / "site"
+    (state / "weeks").mkdir(parents=True)
+    finished = (date.today() - timedelta(days=1)).isoformat()
+    nxt = (date.today() + timedelta(days=6)).isoformat()
+    (state / "weeks" / f"{finished}_UFC-Test-Night.json").write_text(json.dumps(_week(finished, f"{finished}T21:00:00+00:00", BOUTS)))
+    site.build(state, out)
+    assert "Picks locked" in (out / "index.html").read_text()  # no newer card yet: keep showing the finished one
+    week = dict(_week(nxt, f"{nxt}T21:00:00+00:00", BOUTS), event="UFC Next Night", slug=f"{nxt}_UFC-Next-Night")
+    (state / "weeks" / f"{nxt}_UFC-Next-Night.json").write_text(json.dumps(week))
+    site.build(state, out)
+    index = (out / "index.html").read_text()
+    assert "UFC Next Night" in index and "Last card" in index and "Picks locked" not in index

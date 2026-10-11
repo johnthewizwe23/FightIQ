@@ -897,9 +897,11 @@ def build(state: Path = STATE, site: Path = SITE) -> Path:
         (site / "weeks" / f'{w["slug"]}.html').write_text(
             layout(w["event"], week_body(w, rows, depth=1), "record", depth=1, updated=w["updated_at"]))
 
-    today = date.today()
-    upcoming = [w for w in weeks if date.fromisoformat(w["date"]) >= today - pd.Timedelta(days=1).to_pytimedelta()]
-    current = upcoming[0] if upcoming else (weeks[-1] if weeks else None)
+    # the next card whose picks are still open; once every card has locked, the latest one (live or just finished).
+    # The card before it is shown in the "Last card" strip with its result.
+    now = datetime.now(timezone.utc)
+    open_cards = [w for w in weeks if datetime.fromisoformat(w["locks_at"]) > now]
+    current = open_cards[0] if open_cards else (weeks[-1] if weeks else None)
     if current:
         body = week_body(current, rows, depth=0)
         previous = [w for w in weeks if w["date"] < current["date"]]
