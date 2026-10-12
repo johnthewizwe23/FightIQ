@@ -196,6 +196,58 @@ def _first_start(events, card, day) -> pd.Timestamp | None:
     return min(starts) if starts else None
 
 
+def _same_name(x: str, y: str) -> bool:
+    return odds_mod._clean(x) == odds_mod._clean(y) or odds_mod.similarity(x, y) >= odds_mod.MATCH_THRESHOLD
+
+
+def _same_bout(b: dict, o: dict) -> bool:
+    return ((_same_name(b["pick"], o["pick"]) and _same_name(b["opponent"], o["opponent"]))
+            or (_same_name(b["pick"], o["opponent"]) and _same_name(b["opponent"], o["pick"])))
+
+
+def carry_odds_history(bouts: list[dict], previous: dict | None, now: str) -> None:
+    """Keep, across republishes of a card, each fighter's first posted odds and when each value bet was first suggested.
+
+    This feeds the closing-line check on the Record page: if the odds on FightIQ's bets usually shorten between when they
+    are first posted and the last update before the picks lock, the market is moving towards FightIQ's view.
+    """
+    old_bouts = (previous or {}).get("bouts", [])
+    stamp = (previous or {}).get("updated_at", now)
+    for b in bouts:
+        old = next((o for o in old_bouts if _same_bout(b, o)), None)
+        first = dict(old.get("first_odds") or {}) if old else {}
+        if old and not first:  # card published before this tracking existed: its last published odds are the earliest kept
+            first = {n: o for n, o in ((old["pick"], old["odds"]), (old["opponent"], old["opp_odds"])) if o}
+        for n, o in ((b["pick"], b["odds"]), (b["opponent"], b["opp_odds"])):
+            if o and not any(_same_name(n, k) for k in first):
+                first[n] = o
+        b["first_odds"] = first
+        if not b["bet"]:
+            continue
+        prior = old.get("bet_first") if old else None
+        if prior and _same_name(prior["side"], b["bet"]):
+            b["bet_first"] = prior
+        elif old and not prior and old.get("bet") and _same_name(old["bet"], b["bet"]):
+            b["bet_first"] = {"side": old["bet"], "odds": old["bet_odds"], "at": stamp}
+        else:
+            b["bet_first"] = {"side": b["bet"], "odds": b["bet_odds"], "at": now}
+
+
+def closing_line(weeks: list[dict]) -> list[dict]:
+    """Value bets on locked cards: odds when the bet was first suggested vs the last odds before the picks locked."""
+    now = datetime.now(timezone.utc)
+    out = []
+    for w in weeks:
+        if now < datetime.fromisoformat(w["locks_at"]):
+            continue
+        for b in w["bouts"]:
+            f = b.get("bet_first")
+            if b["bet"] and f and f.get("odds") and b.get("bet_odds"):
+                out.append({"date": w["date"], "event": w["event"], "bet": b["bet"], "first": f["odds"],
+                            "close": b["bet_odds"], "change": f["odds"] / b["bet_odds"] - 1})
+    return out
+
+
 def _publish(card, name, day, start, source, state, site, now, rows, predict_card) -> dict:
     weeks_dir, _ = _paths(state)
     weeks_dir.mkdir(parents=True, exist_ok=True)
@@ -217,12 +269,14 @@ def _publish(card, name, day, start, source, state, site, now, rows, predict_car
 
     picks, _ = predict_card(card.reset_index(drop=True), name, day.to_pydatetime())
     slug = existing["slug"] if existing else _slug(day_s, name)
+    bouts = _bouts(picks)
+    carry_odds_history(bouts, existing, now.isoformat(timespec="seconds"))
     week = {
         "event": name, "date": day_s, "slug": slug, "source": source,
         "published_at": existing["published_at"] if existing else now.isoformat(timespec="seconds"),
         "updated_at": now.isoformat(timespec="seconds"),
         "locks_at": locks_at.isoformat(timespec="seconds"),
-        "bouts": _bouts(picks),
+        "bouts": bouts,
     }
     (weeks_dir / f"{slug}.json").write_text(json.dumps(week, indent=2))
     merged = tr.merge(rows, tr.picks_to_rows(picks, require_odds=False))
@@ -536,10 +590,12 @@ def _pred_row(b: dict, result: str | None) -> str:
 
 def _bet_card(b: dict, result: str | None) -> str:
     opp = b["opponent"] if b["bet"] == b["pick"] else b["pick"]
+    first = (b.get("bet_first") or {}).get("odds")
+    first_txt = f" · first posted @ {first:.2f}" if first and abs(first - b["bet_odds"]) >= 0.005 else ""
     corner = _badge(result) if result else '<span class="slip-id">FightIQ</span>'
     return f"""<article class="slip">
   <div class="slip-top"><span class="stamp">{icon("target")}Back</span>{corner}</div>
-  <div class="slip-main"><div><h3>{esc(b["bet"])}</h3><small>to beat {esc(opp)}</small></div>
+  <div class="slip-main"><div><h3>{esc(b["bet"])}</h3><small>to beat {esc(opp)}{first_txt}</small></div>
   <div class="odds"><span>Odds</span><strong>{b["bet_odds"]:.2f}</strong></div></div>
   <div class="perf" aria-hidden="true"></div>
   <dl class="slip-stats"><div><dt>Win chance</dt><dd>{pct(b["bet_p"])}</dd></div>
@@ -623,6 +679,30 @@ def _nice_step(span: float) -> float:
     return 10 * mag
 
 
+def closing_line_section(clv: list[dict]) -> str:
+    intro = ("Bookmakers' final prices are the sharpest. If the odds on FightIQ's value bets usually get shorter between when "
+             "they are first posted and fight time, the market is moving towards FightIQ's view: the best early sign of a real "
+             "edge. If they usually drift out, any profit so far is more likely luck.")
+    head = f'<section><h2>{icon("clock")}Beating the closing line?</h2><p class="note">{intro}</p>'
+    if not clv:
+        return head + ('<div class="empty">Tracking starts with the next card that locks: each value bet\'s first posted '
+                       'odds are compared with the last odds before the fights.</div></section>')
+    n = len(clv)
+    shorter = sum(c["change"] > 0 for c in clv)
+    avg = sum(c["change"] for c in clv) / n
+    tiles = kpis([("Bets tracked", str(n), "value bets on locked cards", "", "target"),
+                  ("Odds shortened", f"{shorter}/{n}", "the market moved our way", "", "check"),
+                  ("Average move", f"{avg:+.1%}", "first posted vs last before lock",
+                   "good" if avg > 0 else "bad" if avg < 0 else "", "model")])
+    rows = "".join(f'<tr><td>{date.fromisoformat(c["date"]):%d %b %Y}</td><td><b>{esc(c["bet"])}</b></td>'
+                   f'<td>{c["first"]:.2f}</td><td>{c["close"]:.2f}</td>'
+                   f'<td class="{"good" if c["change"] > 0 else "bad" if c["change"] < 0 else ""}">{c["change"]:+.1%}</td></tr>'
+                   for c in sorted(clv, key=lambda c: c["date"], reverse=True)[:40])
+    return head + tiles + (f'<div class="tablewrap" style="margin-top:12px"><table><thead><tr><th>Date</th><th>Bet</th>'
+                           f'<th>First posted</th><th>Last before lock</th><th>Move</th></tr></thead><tbody>{rows}</tbody>'
+                           f'</table></div></section>')
+
+
 def record_body(rows: list[list], weeks: list[dict]) -> str:
     s = record_stats(rows)
     since = min((tr._to_date(r[tr.DATE]) for r in rows), default=None)
@@ -669,6 +749,7 @@ def record_body(rows: list[list], weeks: list[dict]) -> str:
 {hero("Since launch", "Live record", lede, csv_btn, "trophy")}
 {tiles}
 <section><h2>{icon("model")}Profit over time</h2>{cumulative_chart(s["path"])}</section>
+{closing_line_section(closing_line(weeks))}
 <section><h2>{icon("calendar")}By event</h2>
 <div class="tablewrap"><table><thead><tr><th>Date</th><th>Event</th><th>Picks</th><th>Bets</th><th>Profit</th></tr></thead>
 <tbody>{ev_rows or '<tr><td colspan="5" class="muted">No events yet.</td></tr>'}</tbody></table></div></section>
@@ -778,6 +859,8 @@ Blend: logit(p) = {bt["blend"]["market_logit"]:.3f} × logit(bookmaker p) + {bt[
 <section><h2>{icon("target")}Bet rules</h2>
 <ul class="rules">
 <li><b>Edge 5%+</b>: a bet is only suggested when the best available odds beat FightIQ's win chance by 5% or more.</li>
+<li><b>Fair odds</b>: the bookmaker's margin is removed with the power method, which takes more of it off the longshot
+(bookmakers overprice longshots). This made the backtest more accurate than splitting the margin evenly.</li>
 <li><b>Small, capped stakes</b>: a quarter of the Kelly amount, never more than 2u (1u = 1% of bankroll).</li>
 <li><b>No debut bets</b>: there are no UFC stats for debutants, and the backtest showed no edge on those fights.</li>
 <li><b>Locked at fight time</b>: picks are final when the first bout starts and are never edited.</li>

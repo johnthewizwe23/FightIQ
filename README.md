@@ -191,7 +191,8 @@ Re-run `train` every month or so to refit on the newest fights.
    reach, age, age past 33, Elo, control time, UFC experience, layoff and a debut flag.
 4. **Model** (`fightiq/model.py`): logistic regression trained on every bout from both corners with no
    intercept, so P(A beats B) = 1 − P(B beats A) and entry order can't bias the number.
-5. **Blend**: logit(p) = a × logit(market) + b × model score, with a and b fitted on out-of-sample
+5. **Blend**: logit(p) = a × logit(market) + b × model score (market = bookmaker probability with the margin
+   removed by the power method), with a and b fitted on out-of-sample
    predictions. A bet is suggested when the blend gives a side more than 5% expected value, never on a
    bout with a UFC debutant. Stake is ¼ Kelly, capped at 2% of bankroll.
 
@@ -202,8 +203,13 @@ each year is predicted by a model trained only on earlier years.
 
 * The stats model alone picks **~62%** of winners from 2015 to 2026, which matches the old spreadsheet's live
   record of 62.2%. The betting market picks ~66%. Stats alone don't beat the bookies.
-* The **blend beats the market price** on log loss, and the betting rule above returned **+14% ROI on 599
-  bets** from 2016 to 2026 (95% interval +4% to +24%), profitable in 10 of 11 years.
+* The **blend beats the market price** on log loss, and the betting rule above returned **+16% ROI on 584
+  bets** from 2016 to 2026 (95% interval +7% to +26%), profitable in 10 of 11 years.
+* The bookmaker margin is removed with the **power method** (more of it comes off the longshot), and 25 garbled
+  historical prices (two sides implying under 100% or over 115%) are dropped. Both were tested the same way (chosen
+  before looking at 2021-2026) and improved the backtest; the Excel Predictor uses the identical calculation.
+* The website's Record page checks the **closing line**: each value bet's first posted odds against the last odds
+  before the picks lock. Odds that usually shorten are the best early sign the edge is real.
 * Caveat: the historical odds come from a public dataset
   ([shortlikeafox/ultimate_ufc_dataset](https://github.com/shortlikeafox/ultimate_ufc_dataset)) that doesn't
   say whether they are opening, closing or best-available prices. If they're openers, real returns will be
