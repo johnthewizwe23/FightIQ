@@ -21,7 +21,7 @@ from openpyxl import Workbook, load_workbook
 from openpyxl.chart import BarChart, Reference
 from openpyxl.comments import Comment
 from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
-from openpyxl.utils import get_column_letter
+from openpyxl.utils import column_index_from_string, get_column_letter
 from openpyxl.worksheet.datavalidation import DataValidation
 
 from . import config, data, features
@@ -441,7 +441,8 @@ def _predictor_sheet(ws, model, cells, fcols, n_fighters, profiles, card=None, e
     labels += [f"feature: {f}" for f in model.features] + ["score", "EV backing A", "EV backing B"]
     _header(ws, hdr, labels, start_col=helper_start, fill=SUB_FILL, color="000000")
     # coefficient row above the feature columns, linked to the Model sheet
-    ws.cell(hdr - 1, helper_start + 2, "coefficients →").font = _font(italic=True, color="595959")
+    ws.cell(hdr - 1, column_index_from_string(feat_cols[model.features[0]]) - 1,
+            "coefficients →").font = _font(italic=True, color="595959")
     for f in model.features:
         c = ws[f"{feat_cols[f]}{hdr - 1}"]
         c.value = f"={cells['coef_' + f]}"
@@ -481,7 +482,7 @@ def _predictor_sheet(ws, model, cells, fcols, n_fighters, profiles, card=None, e
         first_f, last_f = feat_cols[model.features[0]], feat_cols[model.features[-1]]
         ws[f"{ref['score']}{r}"] = f"=SUMPRODUCT({first_f}{r}:{last_f}{r},{coef_range})"
         blank = f'OR(A{r}="",B{r}="")'
-        has_odds = f"AND(ISNUMBER(C{r}),ISNUMBER(D{r}))"
+        has_odds = f"AND(ISNUMBER(C{r}),ISNUMBER(D{r}),C{r}>1,D{r}>1)"
         ws[f"E{r}"] = f'=IF({blank},"",1/(1+EXP(-{ref["score"]}{r})))'
         prev = "1"
         for kc in k_cols:

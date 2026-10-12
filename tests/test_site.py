@@ -137,10 +137,27 @@ def test_record_page_shows_the_closing_line_check(tmp_path):
     state, out = tmp_path / "state", tmp_path / "site"
     (state / "weeks").mkdir(parents=True)
     past = (date.today() - timedelta(days=7)).isoformat()
-    bouts = [dict(BOUTS[0], bet_first={"side": "Brendan Allen", "odds": 2.00, "at": f"{past}T08:00:00+00:00"})]
+    # Allen: suggested at 2.00, closed 1.90 (still a bet). Duncan: suggested earlier at 1.80, closed 1.95, no longer a bet
+    bouts = [dict(BOUTS[0], suggested={"Brendan Allen": {"odds": 2.00, "at": f"{past}T08:00:00+00:00"},
+                                       "Christian Leroy Duncan": {"odds": 1.80, "at": f"{past}T02:00:00+00:00"}})]
     (state / "weeks" / f"{past}_UFC-Test-Night.json").write_text(json.dumps(_week(past, f"{past}T21:00:00+00:00", bouts)))
     site.build(state, out)
     record = (out / "record.html").read_text()
-    assert "Beating the closing line?" in record and "1/1" in record and "+5.3%" in record  # 2.00 first vs 1.90 at lock
+    assert "Beating the closing line?" in record and "1/2" in record and "+5.3%" in record and "-7.7%" in record
+    assert "<td>Yes</td>" in record and "<td>No</td>" in record
     site.build(tmp_path / "empty", tmp_path / "site2")
     assert "Tracking starts with the next card" in (tmp_path / "site2" / "record.html").read_text()
+
+
+def test_a_suggestion_survives_the_bet_disappearing_or_flipping_and_names_in_either_order():
+    card = {"updated_at": "t0", "bouts": []}
+    rounds = [("Steven Koslow", 2.10), (None, None), ("Chad Anheliger", 1.95), ("Steven Koslow", 2.25)]
+    for i, (bet, bet_odds) in enumerate(rounds, start=1):
+        bouts = [dict(BOUTS[0], pick="Steven Koslow", opponent="Chad Anheliger", odds=2.10, opp_odds=1.80,
+                      bet=bet, bet_odds=bet_odds)]
+        site.carry_odds_history(bouts, card, f"t{i}")
+        card = {"updated_at": f"t{i}", "bouts": bouts}
+    b = card["bouts"][0]
+    assert b["suggested"] == {"Steven Koslow": {"odds": 2.10, "at": "t1"}, "Chad Anheliger": {"odds": 1.95, "at": "t3"}}
+    assert b["bet_first"] == {"side": "Steven Koslow", "odds": 2.10, "at": "t1"}
+    assert site._same_name("Zhang Weili", "Weili Zhang") and not site._same_name("Zhang Weili", "Yan Xiaonan")

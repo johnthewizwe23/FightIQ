@@ -206,8 +206,9 @@ each year is predicted by a model trained only on earlier years.
 * The **blend beats the market price** on log loss, and the betting rule above returned **+16% ROI on 584
   bets** from 2016 to 2026 (95% interval +7% to +26%), profitable in 10 of 11 years.
 * The bookmaker margin is removed with the **power method** (more of it comes off the longshot), and 25 garbled
-  historical prices (two sides implying under 100% or over 115%) are dropped. Both were tested the same way (chosen
-  before looking at 2021-2026) and improved the backtest; the Excel Predictor uses the identical calculation.
+  historical prices (two sides implying under 100% or over 115%) are dropped. The power method was fixed in advance and
+  made both the market and the blended probabilities slightly but consistently more accurate in 2016-20 and 2021-26;
+  the ROI change (+14% to +16%) is well within noise. The Excel Predictor uses the identical calculation.
 * The website's Record page checks the **closing line**: each value bet's first posted odds against the last odds
   before the picks lock. Odds that usually shorten are the best early sign the edge is real.
 * Caveat: the historical odds come from a public dataset

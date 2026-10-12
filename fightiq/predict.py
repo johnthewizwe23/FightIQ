@@ -94,6 +94,8 @@ def predict_card(card: pd.DataFrame, event_name: str = "", event_date: datetime 
     contrib = model.contributions(X)
     odds_a = card["odds_a"].to_numpy(float) if "odds_a" in card else np.full(len(card), np.nan)
     odds_b = card["odds_b"].to_numpy(float) if "odds_b" in card else np.full(len(card), np.nan)
+    # decimal odds must be above 1; anything else is a typo (or American odds typed as decimal) and counts as missing
+    odds_a, odds_b = np.where(odds_a > 1, odds_a, np.nan), np.where(odds_b > 1, odds_b, np.nan)
     has_odds = ~np.isnan(odds_a) & ~np.isnan(odds_b)
     p_market = np.where(has_odds, ev.devig(np.where(has_odds, odds_a, 2), np.where(has_odds, odds_b, 2)), np.nan)
     p_final = np.where(has_odds, ev.blend_proba(np.where(has_odds, p_market, 0.5), model.score(X), w), p_model)

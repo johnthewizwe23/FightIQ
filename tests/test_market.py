@@ -31,3 +31,12 @@ def test_load_odds_drops_garbled_prices(tmp_path, monkeypatch):
     odds = data.load_odds()
     # -150/+130 is a normal ~104% book; +260/+360 implies 49%, +140/-900 implies 132%: both impossible for one bookmaker
     assert list(odds["key_r"]) == ["a one"]
+
+
+def test_odds_of_one_or_less_count_as_missing():
+    from fightiq.predict import predict_card
+    card = pd.DataFrame({"fighter_a": ["Max Holloway", "Max Holloway"], "fighter_b": ["Dustin Poirier", "Dustin Poirier"],
+                         "odds_a": [0.9, 2.10], "odds_b": [3.0, 1.80]})
+    picks, _ = predict_card(card, "test", pd.Timestamp("2026-10-17").to_pydatetime())
+    assert pd.isna(picks.loc[0, "Market P(A)"]) and pd.isna(picks.loc[0, "Odds A"]) and not picks.loc[0, "Bet"]
+    assert picks.loc[1, "Market P(A)"] > 0
