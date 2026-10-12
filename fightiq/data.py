@@ -225,6 +225,11 @@ def _load_round_totals(raw, fights: pd.DataFrame) -> pd.DataFrame:
     return tot[["fight_id", "side"] + cols].drop_duplicates(["fight_id", "side"])
 
 
+# A two-way price from one bookmaker implies a total of about 102-106%. A few rows in the public odds file are
+# garbled (the two prices imply under 100% or over 115%, impossible for one book); they are dropped.
+BOOK_RANGE = (1.0, 1.15)
+
+
 def load_odds() -> pd.DataFrame:
     """Historical closing-ish odds as decimal prices, keyed by date and normalised names."""
     m = pd.read_csv(config.RAW_DIR / config.ODDS_FILE)
@@ -233,10 +238,12 @@ def load_odds() -> pd.DataFrame:
         a = pd.to_numeric(american, errors="coerce")
         return np.where(a > 0, 1 + a / 100, 1 + 100 / a.abs())
 
-    return pd.DataFrame({
+    out = pd.DataFrame({
         "date": pd.to_datetime(m["date"]),
         "key_r": m["R_fighter"].map(norm_name),
         "key_b": m["B_fighter"].map(norm_name),
         "odds_r": to_decimal(m["R_odds"]),
         "odds_b": to_decimal(m["B_odds"]),
     }).dropna()
+    book = 1 / out["odds_r"] + 1 / out["odds_b"]
+    return out[(book >= BOOK_RANGE[0]) & (book <= BOOK_RANGE[1])].reset_index(drop=True)

@@ -97,3 +97,67 @@ def test_sync_tracking_drops_rows_left_over_from_an_earlier_version_of_a_card():
             [pd.Timestamp("2026-10-17").to_pydatetime(), "UFC Next", "A vs B", "A", 0.6, None, None, None, None, None]]
     assert site.sync_tracking(rows, [week]) == 1
     assert [r[tr.PICK] for r in rows] == ["Brendan Allen", "Loopy Godinez", "A"]
+
+
+def test_home_page_moves_to_the_next_card_once_it_is_published(tmp_path):
+    state, out = tmp_path / "state", tmp_path / "site"
+    (state / "weeks").mkdir(parents=True)
+    finished = (date.today() - timedelta(days=1)).isoformat()
+    nxt = (date.today() + timedelta(days=6)).isoformat()
+    (state / "weeks" / f"{finished}_UFC-Test-Night.json").write_text(json.dumps(_week(finished, f"{finished}T21:00:00+00:00", BOUTS)))
+    site.build(state, out)
+    assert "Picks locked" in (out / "index.html").read_text()  # no newer card yet: keep showing the finished one
+    week = dict(_week(nxt, f"{nxt}T21:00:00+00:00", BOUTS), event="UFC Next Night", slug=f"{nxt}_UFC-Next-Night")
+    (state / "weeks" / f"{nxt}_UFC-Next-Night.json").write_text(json.dumps(week))
+    site.build(state, out)
+    index = (out / "index.html").read_text()
+    assert "UFC Next Night" in index and "Last card" in index and "Picks locked" not in index
+
+
+def test_first_posted_odds_and_bet_suggestions_survive_republishing():
+    legacy = {"updated_at": "2026-10-11T14:36:00+00:00", "bouts": [
+        dict(BOUTS[0], pick="Brendan Allen", opponent="Christian Leroy Duncan", odds=1.90, opp_odds=1.95,
+             bet="Brendan Allen", bet_odds=1.90),
+        dict(BOUTS[1], pick="Lupita Godinez", opponent="Ketlen Souza", odds=1.44, opp_odds=3.15, bet=None, bet_odds=None)]}
+    new = [dict(BOUTS[0], odds=1.80, opp_odds=2.05, bet="Brendan Allen", bet_odds=1.80),
+           dict(BOUTS[1], pick="Loopy Godinez", opponent="Ketlen Souza", odds=1.40, opp_odds=3.30, bet="Ketlen Souza",
+                bet_odds=3.30)]
+    site.carry_odds_history(new, legacy, "2026-10-12T08:00:00+00:00")
+    assert new[0]["first_odds"] == {"Brendan Allen": 1.90, "Christian Leroy Duncan": 1.95}
+    assert new[0]["bet_first"] == {"side": "Brendan Allen", "odds": 1.90, "at": "2026-10-11T14:36:00+00:00"}
+    assert new[1]["first_odds"] == {"Lupita Godinez": 1.44, "Ketlen Souza": 3.15}  # spelling changed, same fighter
+    assert new[1]["bet_first"] == {"side": "Ketlen Souza", "odds": 3.30, "at": "2026-10-12T08:00:00+00:00"}
+    again = [dict(b) for b in new]
+    again[0]["bet_odds"] = 1.75
+    site.carry_odds_history(again, {"updated_at": "2026-10-12T08:00:00+00:00", "bouts": new}, "2026-10-13T08:00:00+00:00")
+    assert again[0]["bet_first"]["odds"] == 1.90 and again[1]["bet_first"]["odds"] == 3.30
+
+
+def test_record_page_shows_the_closing_line_check(tmp_path):
+    state, out = tmp_path / "state", tmp_path / "site"
+    (state / "weeks").mkdir(parents=True)
+    past = (date.today() - timedelta(days=7)).isoformat()
+    # Allen: suggested at 2.00, closed 1.90 (still a bet). Duncan: suggested earlier at 1.80, closed 1.95, no longer a bet
+    bouts = [dict(BOUTS[0], suggested={"Brendan Allen": {"odds": 2.00, "at": f"{past}T08:00:00+00:00"},
+                                       "Christian Leroy Duncan": {"odds": 1.80, "at": f"{past}T02:00:00+00:00"}})]
+    (state / "weeks" / f"{past}_UFC-Test-Night.json").write_text(json.dumps(_week(past, f"{past}T21:00:00+00:00", bouts)))
+    site.build(state, out)
+    record = (out / "record.html").read_text()
+    assert "Beating the closing line?" in record and "1/2" in record and "+5.3%" in record and "-7.7%" in record
+    assert "<td>Yes</td>" in record and "<td>No</td>" in record
+    site.build(tmp_path / "empty", tmp_path / "site2")
+    assert "Tracking starts with the next card" in (tmp_path / "site2" / "record.html").read_text()
+
+
+def test_a_suggestion_survives_the_bet_disappearing_or_flipping_and_names_in_either_order():
+    card = {"updated_at": "t0", "bouts": []}
+    rounds = [("Steven Koslow", 2.10), (None, None), ("Chad Anheliger", 1.95), ("Steven Koslow", 2.25)]
+    for i, (bet, bet_odds) in enumerate(rounds, start=1):
+        bouts = [dict(BOUTS[0], pick="Steven Koslow", opponent="Chad Anheliger", odds=2.10, opp_odds=1.80,
+                      bet=bet, bet_odds=bet_odds)]
+        site.carry_odds_history(bouts, card, f"t{i}")
+        card = {"updated_at": f"t{i}", "bouts": bouts}
+    b = card["bouts"][0]
+    assert b["suggested"] == {"Steven Koslow": {"odds": 2.10, "at": "t1"}, "Chad Anheliger": {"odds": 1.95, "at": "t3"}}
+    assert b["bet_first"] == {"side": "Steven Koslow", "odds": 2.10, "at": "t1"}
+    assert site._same_name("Zhang Weili", "Weili Zhang") and not site._same_name("Zhang Weili", "Yan Xiaonan")

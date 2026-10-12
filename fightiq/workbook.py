@@ -21,7 +21,7 @@ from openpyxl import Workbook, load_workbook
 from openpyxl.chart import BarChart, Reference
 from openpyxl.comments import Comment
 from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
-from openpyxl.utils import get_column_letter
+from openpyxl.utils import column_index_from_string, get_column_letter
 from openpyxl.worksheet.datavalidation import DataValidation
 
 from . import config, data, features
@@ -349,7 +349,8 @@ def _model_sheet(ws, model: FightModel, priors: dict) -> dict[str, str]:
         cells[key] = f"Model!$C${i}"
     r = r + len(params) + 2
     ws.cell(r, 1, "FightIQ P(A) with odds = 1 / (1 + e^(−z)), z = blend_market × ln(m / (1 − m)) + blend_model × score, "
-                  "where m is the bookmaker probability with the margin removed: (1/oddsA) / (1/oddsA + 1/oddsB).").font = _font(italic=True)
+                  "where m is the bookmaker probability with the margin removed by the power method: m = (1/oddsA)^k, "
+                  "with k chosen so that (1/oddsA)^k + (1/oddsB)^k = 1 (the Predictor's 'margin step' columns).").font = _font(italic=True)
     ws.cell(r + 1, 1, "Stake = min(kelly × (p × odds − 1) / (odds − 1), max_stake). "
                       "No bet on a bout with a UFC debutant.").font = _font(italic=True)
     _widths(ws, {"A": 16, "B": 58, "C": 12})
@@ -418,6 +419,9 @@ def _predictor_sheet(ws, model, cells, fcols, n_fighters, profiles, card=None, e
     ws.cell(hdr - 1, col, "Calculation columns (don't edit)").font = _font(bold=True, color="595959")
     ref["mA"] = get_column_letter(col); col += 1
     ref["mB"] = get_column_letter(col); col += 1
+    k_cols = []  # Newton steps of the power method that removes the bookmaker margin (same steps as evaluate.devig)
+    for _ in range(ev.DEVIG_STEPS):
+        k_cols.append(get_column_letter(col)); col += 1
     side_cols = {}
     for side in ("A", "B"):
         for key, _, _ in SIDE_HELPERS:
@@ -432,12 +436,13 @@ def _predictor_sheet(ws, model, cells, fcols, n_fighters, profiles, card=None, e
     ref["evB"] = get_column_letter(col); col += 1
     helper_end = col - 1
 
-    labels = ["Row in Fighters (A)", "Row in Fighters (B)"]
+    labels = ["Row in Fighters (A)", "Row in Fighters (B)"] + [f"margin step {i + 1}" for i in range(ev.DEVIG_STEPS)]
     labels += [f"{s}: {h}" for s in ("A", "B") for _, h, _ in SIDE_HELPERS]
     labels += [f"feature: {f}" for f in model.features] + ["score", "EV backing A", "EV backing B"]
     _header(ws, hdr, labels, start_col=helper_start, fill=SUB_FILL, color="000000")
     # coefficient row above the feature columns, linked to the Model sheet
-    ws.cell(hdr - 1, helper_start + 2, "coefficients →").font = _font(italic=True, color="595959")
+    ws.cell(hdr - 1, column_index_from_string(feat_cols[model.features[0]]) - 1,
+            "coefficients →").font = _font(italic=True, color="595959")
     for f in model.features:
         c = ws[f"{feat_cols[f]}{hdr - 1}"]
         c.value = f"={cells['coef_' + f]}"
@@ -477,9 +482,14 @@ def _predictor_sheet(ws, model, cells, fcols, n_fighters, profiles, card=None, e
         first_f, last_f = feat_cols[model.features[0]], feat_cols[model.features[-1]]
         ws[f"{ref['score']}{r}"] = f"=SUMPRODUCT({first_f}{r}:{last_f}{r},{coef_range})"
         blank = f'OR(A{r}="",B{r}="")'
-        has_odds = f"AND(ISNUMBER(C{r}),ISNUMBER(D{r}))"
+        has_odds = f"AND(ISNUMBER(C{r}),ISNUMBER(D{r}),C{r}>1,D{r}>1)"
         ws[f"E{r}"] = f'=IF({blank},"",1/(1+EXP(-{ref["score"]}{r})))'
-        ws[f"F{r}"] = f'=IF(OR({blank},NOT({has_odds})),"",(1/C{r})/(1/C{r}+1/D{r}))'
+        prev = "1"
+        for kc in k_cols:
+            ws[f"{kc}{r}"] = (f'=IF(NOT({has_odds}),"",{prev}-((1/C{r})^{prev}+(1/D{r})^{prev}-1)'
+                              f'/((1/C{r})^{prev}*LN(1/C{r})+(1/D{r})^{prev}*LN(1/D{r})))')
+            prev = f"{kc}{r}"
+        ws[f"F{r}"] = f'=IF(OR({blank},NOT({has_odds})),"",(1/C{r})^{prev})'
         ws[f"G{r}"] = (f'=IF({blank},"",IF(F{r}="",E{r},1/(1+EXP(-({cells["blend_market"]}*LN(F{r}/(1-F{r}))'
                        f'+{cells["blend_model"]}*{ref["score"]}{r})))))')
         ws[f"H{r}"] = f'=IF({blank},"",IF(G{r}>=0.5,A{r},B{r}))'

@@ -196,6 +196,69 @@ def _first_start(events, card, day) -> pd.Timestamp | None:
     return min(starts) if starts else None
 
 
+def _same_name(x: str, y: str) -> bool:
+    cx, cy = odds_mod._clean(x), odds_mod._clean(y)
+    return (cx == cy or sorted(cx.split()) == sorted(cy.split())  # "Zhang Weili" / "Weili Zhang"
+            or odds_mod.similarity(x, y) >= odds_mod.MATCH_THRESHOLD)
+
+
+def _lookup(d: dict, name: str):
+    return next((v for k, v in d.items() if _same_name(k, name)), None)
+
+
+def _same_bout(b: dict, o: dict) -> bool:
+    return ((_same_name(b["pick"], o["pick"]) and _same_name(b["opponent"], o["opponent"]))
+            or (_same_name(b["pick"], o["opponent"]) and _same_name(b["opponent"], o["pick"])))
+
+
+def carry_odds_history(bouts: list[dict], previous: dict | None, now: str) -> None:
+    """Keep, across republishes of a card, each fighter's first posted odds and every value bet FightIQ suggested.
+
+    bout["suggested"] = {fighter: {"odds", "at"}} records the first time each side was a value bet, and is kept even if the
+    bet later disappears (odds that shorten usually push a bet under the 5% edge) or flips sides. The Record page compares
+    each suggestion with that fighter's last odds before lock, so bets the market moved towards are not left out.
+    bout["bet_first"] is the suggestion for the current bet, for display. For a card published before this tracking
+    existed, the last published odds are the earliest kept, and "at" is a time the bet was seen at (or before).
+    """
+    old_bouts = (previous or {}).get("bouts", [])
+    stamp = (previous or {}).get("updated_at", now)
+    for b in bouts:
+        old = next((o for o in old_bouts if _same_bout(b, o)), None)
+        first = dict(old.get("first_odds") or {}) if old else {}
+        if old and not first:  # legacy card: its last published odds are the earliest kept
+            first = {n: o for n, o in ((old["pick"], old["odds"]), (old["opponent"], old["opp_odds"])) if o}
+        for n, o in ((b["pick"], b["odds"]), (b["opponent"], b["opp_odds"])):
+            if o and _lookup(first, n) is None:
+                first[n] = o
+        b["first_odds"] = first
+        suggested = dict(old.get("suggested") or {}) if old else {}
+        if old and "suggested" not in old and old.get("bet") and old.get("bet_odds"):  # legacy card
+            suggested[old["bet"]] = {"odds": old["bet_odds"], "at": stamp}
+        if b["bet"] and _lookup(suggested, b["bet"]) is None:
+            suggested[b["bet"]] = {"odds": b["bet_odds"], "at": now}
+        b["suggested"] = suggested
+        if b["bet"]:
+            b["bet_first"] = dict(_lookup(suggested, b["bet"]), side=b["bet"])
+        else:
+            b.pop("bet_first", None)
+
+
+def closing_line(weeks: list[dict]) -> list[dict]:
+    """Every value bet FightIQ suggested on a locked card: odds when first suggested vs that fighter's last odds before lock."""
+    now = datetime.now(timezone.utc)
+    out = []
+    for w in weeks:
+        if now < datetime.fromisoformat(w["locks_at"]):
+            continue
+        for b in w["bouts"]:
+            for name, s in (b.get("suggested") or {}).items():
+                close = b["odds"] if _same_name(name, b["pick"]) else b["opp_odds"]
+                if s.get("odds") and close:
+                    out.append({"date": w["date"], "event": w["event"], "bet": name, "first": s["odds"], "close": close,
+                                "change": s["odds"] / close - 1, "at_lock": bool(b["bet"]) and _same_name(name, b["bet"])})
+    return out
+
+
 def _publish(card, name, day, start, source, state, site, now, rows, predict_card) -> dict:
     weeks_dir, _ = _paths(state)
     weeks_dir.mkdir(parents=True, exist_ok=True)
@@ -217,12 +280,14 @@ def _publish(card, name, day, start, source, state, site, now, rows, predict_car
 
     picks, _ = predict_card(card.reset_index(drop=True), name, day.to_pydatetime())
     slug = existing["slug"] if existing else _slug(day_s, name)
+    bouts = _bouts(picks)
+    carry_odds_history(bouts, existing, now.isoformat(timespec="seconds"))
     week = {
         "event": name, "date": day_s, "slug": slug, "source": source,
         "published_at": existing["published_at"] if existing else now.isoformat(timespec="seconds"),
         "updated_at": now.isoformat(timespec="seconds"),
         "locks_at": locks_at.isoformat(timespec="seconds"),
-        "bouts": _bouts(picks),
+        "bouts": bouts,
     }
     (weeks_dir / f"{slug}.json").write_text(json.dumps(week, indent=2))
     merged = tr.merge(rows, tr.picks_to_rows(picks, require_odds=False))
@@ -536,10 +601,12 @@ def _pred_row(b: dict, result: str | None) -> str:
 
 def _bet_card(b: dict, result: str | None) -> str:
     opp = b["opponent"] if b["bet"] == b["pick"] else b["pick"]
+    first = (b.get("bet_first") or {}).get("odds")
+    first_txt = f" · first posted @ {first:.2f}" if first and abs(first - b["bet_odds"]) >= 0.005 else ""
     corner = _badge(result) if result else '<span class="slip-id">FightIQ</span>'
     return f"""<article class="slip">
   <div class="slip-top"><span class="stamp">{icon("target")}Back</span>{corner}</div>
-  <div class="slip-main"><div><h3>{esc(b["bet"])}</h3><small>to beat {esc(opp)}</small></div>
+  <div class="slip-main"><div><h3>{esc(b["bet"])}</h3><small>to beat {esc(opp)}{first_txt}</small></div>
   <div class="odds"><span>Odds</span><strong>{b["bet_odds"]:.2f}</strong></div></div>
   <div class="perf" aria-hidden="true"></div>
   <dl class="slip-stats"><div><dt>Win chance</dt><dd>{pct(b["bet_p"])}</dd></div>
@@ -623,6 +690,32 @@ def _nice_step(span: float) -> float:
     return 10 * mag
 
 
+def closing_line_section(clv: list[dict]) -> str:
+    intro = ("Bookmakers' final prices are the sharpest. If the odds on FightIQ's value bets usually get shorter between when "
+             "they are first posted and fight time, the market is moving towards FightIQ's view: the best early sign of a real "
+             "edge. If they usually drift out, any profit so far is more likely luck.")
+    head = f'<section><h2>{icon("clock")}Beating the closing line?</h2><p class="note">{intro}</p>'
+    if not clv:
+        return head + ('<div class="empty">Tracking starts with the next card that locks: every value bet\'s odds when first '
+                       'suggested are compared with that fighter\'s last odds before the fights.</div></section>')
+    n = len(clv)
+    shorter = sum(c["change"] > 0 for c in clv)
+    avg = float(np.exp(np.mean([np.log(c["first"] / c["close"]) for c in clv]))) - 1  # typical move, unbiased up or down
+    tiles = kpis([("Bets tracked", str(n), "every value bet suggested", "", "target"),
+                  ("Odds shortened", f"{shorter}/{n}", "the market moved our way", "", "check"),
+                  ("Typical move", f"{avg:+.1%}", "first suggested vs last before lock",
+                   "good" if avg > 0 else "bad" if avg < 0 else "", "model")])
+    rows = "".join(f'<tr><td>{date.fromisoformat(c["date"]):%d %b %Y}</td><td><b>{esc(c["bet"])}</b></td>'
+                   f'<td>{c["first"]:.2f}</td><td>{c["close"]:.2f}</td>'
+                   f'<td class="{"good" if c["change"] > 0 else "bad" if c["change"] < 0 else ""}">{c["change"]:+.1%}</td>'
+                   f'<td>{"Yes" if c["at_lock"] else "No"}</td></tr>'
+                   for c in sorted(clv, key=lambda c: c["date"], reverse=True)[:40])
+    return head + tiles + (f'<div class="tablewrap" style="margin-top:12px"><table><thead><tr><th>Date</th><th>Bet</th>'
+                           f'<th>First suggested</th><th>Last before lock</th><th>Move</th><th>Still a bet at lock</th></tr>'
+                           f'</thead><tbody>{rows}</tbody>'
+                           f'</table></div></section>')
+
+
 def record_body(rows: list[list], weeks: list[dict]) -> str:
     s = record_stats(rows)
     since = min((tr._to_date(r[tr.DATE]) for r in rows), default=None)
@@ -669,6 +762,7 @@ def record_body(rows: list[list], weeks: list[dict]) -> str:
 {hero("Since launch", "Live record", lede, csv_btn, "trophy")}
 {tiles}
 <section><h2>{icon("model")}Profit over time</h2>{cumulative_chart(s["path"])}</section>
+{closing_line_section(closing_line(weeks))}
 <section><h2>{icon("calendar")}By event</h2>
 <div class="tablewrap"><table><thead><tr><th>Date</th><th>Event</th><th>Picks</th><th>Bets</th><th>Profit</th></tr></thead>
 <tbody>{ev_rows or '<tr><td colspan="5" class="muted">No events yet.</td></tr>'}</tbody></table></div></section>
@@ -778,6 +872,8 @@ Blend: logit(p) = {bt["blend"]["market_logit"]:.3f} × logit(bookmaker p) + {bt[
 <section><h2>{icon("target")}Bet rules</h2>
 <ul class="rules">
 <li><b>Edge 5%+</b>: a bet is only suggested when the best available odds beat FightIQ's win chance by 5% or more.</li>
+<li><b>Fair odds</b>: the bookmaker's margin is removed with the power method, which takes more of it off the longshot
+(bookmakers overprice longshots). This made the backtest more accurate than splitting the margin evenly.</li>
 <li><b>Small, capped stakes</b>: a quarter of the Kelly amount, never more than 2u (1u = 1% of bankroll).</li>
 <li><b>No debut bets</b>: there are no UFC stats for debutants, and the backtest showed no edge on those fights.</li>
 <li><b>Locked at fight time</b>: picks are final when the first bout starts and are never edited.</li>
@@ -897,9 +993,11 @@ def build(state: Path = STATE, site: Path = SITE) -> Path:
         (site / "weeks" / f'{w["slug"]}.html').write_text(
             layout(w["event"], week_body(w, rows, depth=1), "record", depth=1, updated=w["updated_at"]))
 
-    today = date.today()
-    upcoming = [w for w in weeks if date.fromisoformat(w["date"]) >= today - pd.Timedelta(days=1).to_pytimedelta()]
-    current = upcoming[0] if upcoming else (weeks[-1] if weeks else None)
+    # the next card whose picks are still open; once every card has locked, the latest one (live or just finished).
+    # The card before it is shown in the "Last card" strip with its result.
+    now = datetime.now(timezone.utc)
+    open_cards = [w for w in weeks if datetime.fromisoformat(w["locks_at"]) > now]
+    current = open_cards[0] if open_cards else (weeks[-1] if weeks else None)
     if current:
         body = week_body(current, rows, depth=0)
         previous = [w for w in weeks if w["date"] < current["date"]]
