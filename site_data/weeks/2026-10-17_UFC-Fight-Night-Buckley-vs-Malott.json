@@ -2,19 +2,89 @@
   "event": "UFC Fight Night: Buckley vs. Malott",
   "date": "2026-10-17",
   "slug": "2026-10-17_UFC-Fight-Night-Buckley-vs-Malott",
-  "source": "ufcstats.com",
+  "source": "odds feed",
   "published_at": "2026-10-11T14:36:54+00:00",
-  "updated_at": "2026-10-12T03:10:24+00:00",
+  "updated_at": "2026-10-12T05:24:17+00:00",
   "locks_at": "2026-10-17T21:00:00+00:00",
   "bouts": [
     {
-      "pick": "Mike Malott",
-      "opponent": "Joaquin Buckley",
-      "p": 0.5437,
-      "p_model": 0.4822,
-      "p_market": 0.552,
-      "odds": 1.78,
-      "opp_odds": 2.18,
+      "pick": "Steven Koslow",
+      "opponent": "Chad Anheliger",
+      "p": 0.5486,
+      "p_model": 0.7361,
+      "p_market": 0.4735,
+      "odds": 2.1,
+      "opp_odds": 1.89,
+      "debut": false,
+      "bet": "Steven Koslow",
+      "bet_odds": 2.1,
+      "bet_p": 0.5486,
+      "edge": 0.152,
+      "stake": 2.0,
+      "first_odds": {
+        "Steven Koslow": 2.1,
+        "Chad Anheliger": 1.89
+      },
+      "suggested": {
+        "Steven Koslow": {
+          "odds": 2.1,
+          "at": "2026-10-11T21:47:34+00:00"
+        }
+      },
+      "bet_first": {
+        "odds": 2.1,
+        "at": "2026-10-11T21:47:34+00:00",
+        "side": "Steven Koslow"
+      }
+    },
+    {
+      "pick": "Cody Chovancek",
+      "opponent": "SuYoung You",
+      "p": 0.52,
+      "p_model": 0.3188,
+      "p_market": 0.5788,
+      "odds": 1.67,
+      "opp_odds": 2.25,
+      "debut": true,
+      "bet": null,
+      "bet_odds": null,
+      "bet_p": null,
+      "edge": null,
+      "stake": null,
+      "first_odds": {
+        "Cody Chovancek": 1.67,
+        "SuYoung You": 2.25
+      },
+      "suggested": {}
+    },
+    {
+      "pick": "Cristian P\u00e9rez",
+      "opponent": "Kyle Nelson",
+      "p": 0.7374,
+      "p_model": 0.6045,
+      "p_market": 0.7255,
+      "odds": 1.35,
+      "opp_odds": 3.35,
+      "debut": true,
+      "bet": null,
+      "bet_odds": null,
+      "bet_p": null,
+      "edge": null,
+      "stake": null,
+      "first_odds": {
+        "Cristian Perez": 1.35,
+        "Kyle Nelson": 3.35
+      },
+      "suggested": {}
+    },
+    {
+      "pick": "Jhonata Diniz",
+      "opponent": "Tanner Boser",
+      "p": 0.6978,
+      "p_model": 0.5987,
+      "p_market": 0.6836,
+      "odds": 1.43,
+      "opp_odds": 2.95,
       "debut": false,
       "bet": null,
       "bet_odds": null,
@@ -22,8 +92,48 @@
       "edge": null,
       "stake": null,
       "first_odds": {
-        "Mike Malott": 1.72,
-        "Joaquin Buckley": 2.23
+        "Jhonata Diniz": 1.43,
+        "Tanner Boser": 2.95
+      },
+      "suggested": {}
+    },
+    {
+      "pick": "Nick Galanti",
+      "opponent": "Julien Leblanc",
+      "p": 0.8352,
+      "p_model": 0.5402,
+      "p_market": 0.8432,
+      "odds": 1.17,
+      "opp_odds": 5.5,
+      "debut": true,
+      "bet": null,
+      "bet_odds": null,
+      "bet_p": null,
+      "edge": null,
+      "stake": null,
+      "first_odds": {
+        "Nick Galanti": 1.17,
+        "Julien Leblanc": 5.5
+      },
+      "suggested": {}
+    },
+    {
+      "pick": "Melissa Croden",
+      "opponent": "Chelsea Chandler",
+      "p": 0.7599,
+      "p_model": 0.745,
+      "p_market": 0.7112,
+      "odds": 1.37,
+      "opp_odds": 3.15,
+      "debut": false,
+      "bet": null,
+      "bet_odds": null,
+      "bet_p": null,
+      "edge": null,
+      "stake": null,
+      "first_odds": {
+        "Melissa Croden": 1.37,
+        "Chelsea Chandler": 3.15
       },
       "suggested": {}
     },
@@ -53,22 +163,22 @@
       }
     },
     {
-      "pick": "Cristian Perez",
-      "opponent": "Kyle Nelson",
-      "p": 0.7374,
-      "p_model": 0.6045,
-      "p_market": 0.7255,
-      "odds": 1.35,
-      "opp_odds": 3.35,
-      "debut": true,
+      "pick": "Mike Malott",
+      "opponent": "Joaquin Buckley",
+      "p": 0.5437,
+      "p_model": 0.4822,
+      "p_market": 0.552,
+      "odds": 1.78,
+      "opp_odds": 2.18,
+      "debut": false,
       "bet": null,
       "bet_odds": null,
       "bet_p": null,
       "edge": null,
       "stake": null,
       "first_odds": {
-        "Cristian Perez": 1.35,
-        "Kyle Nelson": 3.35
+        "Mike Malott": 1.72,
+        "Joaquin Buckley": 2.23
       },
       "suggested": {}
     },
@@ -129,150 +239,6 @@
       "first_odds": {
         "Mandel Nallo": 1.36,
         "Nate Landwehr": 3.25
-      },
-      "suggested": {}
-    },
-    {
-      "pick": "Jhonata Diniz",
-      "opponent": "Tanner Boser",
-      "p": 0.6978,
-      "p_model": 0.5987,
-      "p_market": 0.6836,
-      "odds": 1.43,
-      "opp_odds": 2.95,
-      "debut": false,
-      "bet": null,
-      "bet_odds": null,
-      "bet_p": null,
-      "edge": null,
-      "stake": null,
-      "first_odds": {
-        "Jhonata Diniz": 1.43,
-        "Tanner Boser": 2.95
-      },
-      "suggested": {}
-    },
-    {
-      "pick": "Nick Galanti",
-      "opponent": "Julien Leblanc",
-      "p": 0.8388,
-      "p_model": 0.5629,
-      "p_market": 0.8432,
-      "odds": 1.17,
-      "opp_odds": 5.5,
-      "debut": true,
-      "bet": null,
-      "bet_odds": null,
-      "bet_p": null,
-      "edge": null,
-      "stake": null,
-      "first_odds": {
-        "Nick Galanti": 1.17,
-        "Julien Leblanc": 5.5
-      },
-      "suggested": {}
-    },
-    {
-      "pick": "Joel Faglier",
-      "opponent": "Javad Mahjoub",
-      "p": 0.6283,
-      "p_model": 0.6283,
-      "p_market": null,
-      "odds": null,
-      "opp_odds": null,
-      "debut": true,
-      "bet": null,
-      "bet_odds": null,
-      "bet_p": null,
-      "edge": null,
-      "stake": null,
-      "first_odds": {},
-      "suggested": {}
-    },
-    {
-      "pick": "Mackenzie Stiller",
-      "opponent": "Katlyn Cerminara",
-      "p": 0.5501,
-      "p_model": 0.5501,
-      "p_market": null,
-      "odds": null,
-      "opp_odds": null,
-      "debut": true,
-      "bet": null,
-      "bet_odds": null,
-      "bet_p": null,
-      "edge": null,
-      "stake": null,
-      "first_odds": {},
-      "suggested": {}
-    },
-    {
-      "pick": "Steven Koslow",
-      "opponent": "Chad Anheliger",
-      "p": 0.5486,
-      "p_model": 0.7361,
-      "p_market": 0.4735,
-      "odds": 2.1,
-      "opp_odds": 1.89,
-      "debut": false,
-      "bet": "Steven Koslow",
-      "bet_odds": 2.1,
-      "bet_p": 0.5486,
-      "edge": 0.152,
-      "stake": 2.0,
-      "first_odds": {
-        "Steven Koslow": 2.1,
-        "Chad Anheliger": 1.89
-      },
-      "suggested": {
-        "Steven Koslow": {
-          "odds": 2.1,
-          "at": "2026-10-11T21:47:34+00:00"
-        }
-      },
-      "bet_first": {
-        "odds": 2.1,
-        "at": "2026-10-11T21:47:34+00:00",
-        "side": "Steven Koslow"
-      }
-    },
-    {
-      "pick": "Melissa Croden",
-      "opponent": "Chelsea Chandler",
-      "p": 0.7502,
-      "p_model": 0.7084,
-      "p_market": 0.7112,
-      "odds": 1.37,
-      "opp_odds": 3.15,
-      "debut": false,
-      "bet": null,
-      "bet_odds": null,
-      "bet_p": null,
-      "edge": null,
-      "stake": null,
-      "first_odds": {
-        "Melissa Croden": 1.37,
-        "Chelsea Chandler": 3.15
-      },
-      "suggested": {}
-    },
-    {
-      "pick": "Cody Chovancek",
-      "opponent": "SuYoung You",
-      "p": 0.52,
-      "p_model": 0.3188,
-      "p_market": 0.5788,
-      "odds": 1.67,
-      "opp_odds": 2.25,
-      "debut": true,
-      "bet": null,
-      "bet_odds": null,
-      "bet_p": null,
-      "edge": null,
-      "stake": null,
-      "first_odds": {
-        "Cody Chovancek": 1.67,
-        "SuYoung You": 2.25
       },
       "suggested": {}
     }
