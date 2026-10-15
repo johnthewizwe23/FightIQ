@@ -101,14 +101,14 @@ class _Browser:
         except Exception as exc:  # a navigation the check triggers mid-load can interrupt goto
             print(f"(browser: {str(exc).splitlines()[0]})")
         deadline = time.time() + wait_s
-        html = self._page.content()
-        while not ok(html) and time.time() < deadline:
-            self._page.wait_for_timeout(1000)
+        while True:
             try:
                 html = self._page.content()
-            except Exception:  # page is mid-navigation
-                continue
-        return html
+            except Exception:  # the browser check is still redirecting ("page is navigating"): try again shortly
+                html = ""
+            if ok(html) or time.time() >= deadline:
+                return html
+            self._page.wait_for_timeout(1000)
 
     def _start(self) -> None:
         try:

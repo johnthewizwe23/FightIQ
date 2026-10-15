@@ -96,6 +96,7 @@ def _bouts(picks: pd.DataFrame) -> list[dict]:
             "odds": None if r["pick_odds"] is None else round(float(r["pick_odds"]), 2),
             "opp_odds": None if r["opp_odds"] is None else round(float(r["opp_odds"]), 2),
             "debut": bool(r["debut"]),
+            "debut_names": [n for n in (r["pick"], r["opp"]) if f"{n}: no UFC history" in str(p.get("Notes", ""))],
             "bet": r["bet"], "bet_odds": None if not r["bet"] else round(float(r["bet_odds"]), 2),
             "bet_p": None if not r["bet"] else round(float(r["bet_p"]), 4),
             "edge": None if not r["bet"] else round(float(r["ev"]), 4),
@@ -129,10 +130,11 @@ def update(state: Path = STATE, site: Path = SITE, scrape: bool = True, now: pd.
 
     card = name = day = start = None
     source = ""
-    if scrape:
+    for attempt in range(2 if scrape else 0):
         try:
             card, name, day = card_mod.scrape_upcoming()
             source = "ufcstats.com"
+            break
         except Exception as exc:  # blocked, changed, or no browser: fall back to the odds feed
             print(f"ufcstats.com card unavailable ({str(exc).splitlines()[0][:160]})")
     if card is not None and events:
@@ -144,6 +146,12 @@ def update(state: Path = STATE, site: Path = SITE, scrape: bool = True, now: pd.
         if found:
             card, name, day, start = found
             source = "odds feed"
+            official = _official_bouts(state, pd.Timestamp(day))
+            if official:  # the feed only supplies odds; the bouts stay the ones ufcstats.com listed
+                card = pd.DataFrame(official, columns=["fighter_a", "fighter_b"])
+                card, n = odds_mod.attach(card, odds_mod.best_prices(events))
+                start = _first_start(events, card, day)
+                print(f"kept the official {len(card)}-bout card; odds found for {n}")
     week = None
     if card is not None and len(card):
         week = _publish(card, name, pd.Timestamp(day), start, source, state, site, now, rows, predict_card)
@@ -181,6 +189,13 @@ def sync_tracking(rows: list[list], weeks: list[dict]) -> int:
     before = len(rows)
     rows[:] = [r for r in rows if (k := tr.row_key(r)) is None or k[0] not in cards or k in cards[k[0]]]
     return before - len(rows)
+
+
+def _official_bouts(state: Path, day: pd.Timestamp) -> list[list[str]] | None:
+    """The bout list last read from ufcstats.com for this date, if any."""
+    weeks_dir, _ = _paths(state)
+    path = next(iter(sorted(weeks_dir.glob(f"{day:%Y-%m-%d}_*.json"))), None)
+    return json.loads(path.read_text()).get("official") if path else None
 
 
 def _first_start(events, card, day) -> pd.Timestamp | None:
@@ -267,10 +282,15 @@ def _publish(card, name, day, start, source, state, site, now, rows, predict_car
     existing = json.loads(existing_path.read_text()) if existing_path else None
     if existing and source != "ufcstats.com":
         name = existing["event"]  # keep the official name once we have it
-    # picks lock at the first bout's start; without a start time, conservatively 12:00 UTC the day before
-    locks_at = start.tz_convert("UTC") if start is not None else (day - pd.Timedelta(hours=12)).tz_localize("UTC")
-    if existing and existing.get("locks_at"):
-        locks_at = min(locks_at, pd.Timestamp(existing["locks_at"]))
+    # picks lock at the first bout's start; without a start time, conservatively 12:00 UTC the day before.
+    # Once a card's lock time has passed it is never changed again; before that, the lock follows the card's bouts.
+    previous_lock = pd.Timestamp(existing["locks_at"]) if existing and existing.get("locks_at") else None
+    if start is not None:
+        locks_at = start.tz_convert("UTC")
+    else:
+        locks_at = previous_lock or (day - pd.Timedelta(hours=12)).tz_localize("UTC")
+    if previous_lock is not None and now >= previous_lock:
+        locks_at = previous_lock
     if now >= locks_at:
         if existing:
             print(f"{existing['event']}: picks locked at {existing['locks_at']} - not changed")
@@ -289,6 +309,10 @@ def _publish(card, name, day, start, source, state, site, now, rows, predict_car
         "locks_at": locks_at.isoformat(timespec="seconds"),
         "bouts": bouts,
     }
+    official = ([[a, b] for a, b in zip(card["fighter_a"], card["fighter_b"])] if source == "ufcstats.com"
+                else (existing or {}).get("official"))
+    if official:
+        week["official"] = official
     (weeks_dir / f"{slug}.json").write_text(json.dumps(week, indent=2))
     merged = tr.merge(rows, tr.picks_to_rows(picks, require_odds=False))
     rows[:] = merged
@@ -577,9 +601,15 @@ def _badge(result: str | None) -> str:
 
 def _pred_row(b: dict, result: str | None) -> str:
     label, cls = tier(b["p"])
-    tags = []
-    if b["debut"]:
-        tags.append('<span class="tag">Debut</span>')
+    tags, opp_tags = [], ""
+    names = b.get("debut_names")
+    if names is None and b["debut"]:
+        tags.append('<span class="tag">Debut bout</span>')
+    elif names:
+        if b["pick"] in names:
+            tags.append('<span class="tag">UFC debut</span>')
+        if b["opponent"] in names:
+            opp_tags = '<span class="tag">UFC debut</span>'
     if b["bet"] == b["pick"]:
         tags.append('<span class="tag accent">Value bet</span>')
     elif b["bet"]:
@@ -594,7 +624,7 @@ def _pred_row(b: dict, result: str | None) -> str:
     return f"""<div class="bout-row" role="row">
   <div class="corner pick" role="cell"><b>{esc(b["pick"])}</b><small>{odds}{"".join(tags)}</small></div>
   <div class="split" role="cell" data-tip="{tip}"><span class="seg {cls}" style="width:{b["p"] * 100:.1f}%">{pct(b["p"])}</span><span class="seg opp">{opp_text}</span></div>
-  <div class="corner opp" role="cell"><b>{esc(b["opponent"])}</b><small>{opp_odds}</small></div>
+  <div class="corner opp" role="cell"><b>{esc(b["opponent"])}</b><small>{opp_odds}{opp_tags}</small></div>
   <div class="call" role="cell"><span class="tier {cls}">{call}</span>{_badge(result)}</div>
 </div>"""
 

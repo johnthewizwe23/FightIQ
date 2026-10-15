@@ -161,3 +161,41 @@ def test_a_suggestion_survives_the_bet_disappearing_or_flipping_and_names_in_eit
     assert b["suggested"] == {"Steven Koslow": {"odds": 2.10, "at": "t1"}, "Chad Anheliger": {"odds": 1.95, "at": "t3"}}
     assert b["bet_first"] == {"side": "Steven Koslow", "odds": 2.10, "at": "t1"}
     assert site._same_name("Zhang Weili", "Weili Zhang") and not site._same_name("Zhang Weili", "Yan Xiaonan")
+
+
+def test_an_unlocked_card_keeps_its_official_bouts_and_its_lock_follows_them(tmp_path, monkeypatch):
+    """Oct 2026: the odds-feed fallback added two other-promotion bouts and pulled the lock 7 hours early."""
+    state, out = tmp_path / "state", tmp_path / "site"
+    (state / "weeks").mkdir(parents=True)
+    day = pd.Timestamp("2026-10-17")
+    existing = dict(_week("2026-10-17", "2026-10-17T14:00:00+00:00", BOUTS), event="UFC Fight Night: Real vs. Card",
+                    slug="2026-10-17_UFC-Fight-Night-Real-vs-Card",
+                    official=[["Brendan Allen", "Christian Leroy Duncan"], ["Matheus Camilo", "Jai Herbert"]])
+    (state / "weeks" / "2026-10-17_UFC-Fight-Night-Real-vs-Card.json").write_text(json.dumps(existing))
+    assert site._official_bouts(state, day) == existing["official"]
+    seen = {}
+
+    def fake_predict(card, name, when):
+        seen["card"] = card
+        picks = pd.DataFrame({"Fighter A": card["fighter_a"], "Fighter B": card["fighter_b"]})
+        return picks, None
+    monkeypatch.setattr(site, "_bouts", lambda picks: [dict(BOUTS[0])])
+    monkeypatch.setattr(site.report_mod, "render", lambda *a, **k: None)
+    monkeypatch.setattr(site.tr, "picks_to_rows", lambda picks, require_odds=False: [])
+    card = pd.DataFrame({"fighter_a": ["Brendan Allen"], "fighter_b": ["Christian Leroy Duncan"]})
+    week = site._publish(card, "UFC: Allen vs. Duncan", day, pd.Timestamp("2026-10-17T21:00:00Z"), "odds feed",
+                         state, out, pd.Timestamp("2026-10-15T13:00:00Z"), [], fake_predict)
+    assert week["locks_at"] == "2026-10-17T21:00:00+00:00"  # corrected later, allowed because it had not locked yet
+    assert week["official"] == existing["official"] and week["event"] == "UFC Fight Night: Real vs. Card"
+    # once the (corrected) lock time has passed, nothing changes any more
+    again = site._publish(card, "x", day, pd.Timestamp("2026-10-18T01:00:00Z"), "odds feed", state, out,
+                          pd.Timestamp("2026-10-17T21:30:00Z"), [], fake_predict)
+    assert again["locks_at"] == "2026-10-17T21:00:00+00:00" and again["updated_at"] == week["updated_at"]
+
+
+def test_debut_tag_sits_with_the_debuting_fighter():
+    b = dict(BOUTS[0], pick="SuYoung You", opponent="Cody Chovancek", debut=True, debut_names=["Cody Chovancek"],
+             bet=None, bet_odds=None)
+    row = site._pred_row(b, None)
+    pick_cell, opp_cell = row.split('class="corner opp"')
+    assert "UFC debut" not in pick_cell and "UFC debut" in opp_cell

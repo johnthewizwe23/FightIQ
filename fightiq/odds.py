@@ -163,6 +163,25 @@ def _match_known(name: str, known: dict, keys: list[str]) -> tuple[str, pd.Times
     return None
 
 
+def _same_event(day_bouts: pd.DataFrame, gap: pd.Timedelta = pd.Timedelta(hours=6),
+                margin: pd.Timedelta = pd.Timedelta(hours=3)) -> pd.DataFrame:
+    """Keep only the bouts of the UFC event itself.
+
+    Other promotions share the feed and the date, and a fighter there can share a name with a UFC fighter (an "Alex
+    Pereira" against an unknown opponent looks like a UFC debut). The event is the largest run of bouts where both
+    fighters have UFC history, with start times no more than `gap` apart; other bouts count only if they start within
+    `margin` of that run.
+    """
+    sure = day_bouts[day_bouts["both_known"]].sort_values("start")
+    if sure.empty:
+        return day_bouts
+    run_id = (sure["start"].diff() > gap).cumsum()
+    biggest = run_id.value_counts().idxmax()
+    run = sure[run_id == biggest]
+    lo, hi = run["start"].min() - margin, run["start"].max() + margin
+    return day_bouts[day_bouts["start"].between(lo, hi)]
+
+
 def card_from_feed(events: list[dict], fights: pd.DataFrame, now: pd.Timestamp | None = None,
                    active_days: int = 450, min_bouts: int = 3):
     """Next UFC card from The Odds API's MMA feed (which also lists other promotions).
@@ -190,7 +209,7 @@ def card_from_feed(events: list[dict], fights: pd.DataFrame, now: pd.Timestamp |
                      "odds_a": p["odds_a"], "odds_b": p["odds_b"],
                      "odds_source": f"{p['fighter_a']}: {p['odds_a']:.2f} ({p['book_a']}) | "
                                     f"{p['fighter_b']}: {p['odds_b']:.2f} ({p['book_b']})",
-                     "start": start, "day": start.tz_convert("America/New_York").date()})
+                     "start": start, "day": start.tz_convert("America/New_York").date(), "both_known": bool(ma and mb)})
     if not rows:
         return None
     bouts = pd.DataFrame(rows)
@@ -198,7 +217,7 @@ def card_from_feed(events: list[dict], fights: pd.DataFrame, now: pd.Timestamp |
     days = sorted(d for d, n in counts.items() if n >= min_bouts)
     if not days:
         return None
-    card = bouts[bouts["day"] == days[0]].sort_values("start", ascending=False).reset_index(drop=True)
+    card = _same_event(bouts[bouts["day"] == days[0]]).sort_values("start", ascending=False).reset_index(drop=True)
     main = card.iloc[0]
     event = f"UFC: {main['fighter_a'].split()[-1]} vs. {main['fighter_b'].split()[-1]}"
     return (card[["fighter_a", "fighter_b", "odds_a", "odds_b", "odds_source"]], event,

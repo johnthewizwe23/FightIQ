@@ -68,3 +68,28 @@ def test_card_from_feed_picks_the_next_ufc_card_and_uses_data_spellings():
     assert list(card["fighter_a"]) == ["Brendan Allen", "Matheus Camilo", "Loopy Godinez"]
     assert list(card["fighter_b"])[2] == "Ketlen Souza"  # switched to the fight data's spelling
     assert start == pd.Timestamp("2026-10-10T23:00:00Z")
+
+
+def test_card_from_feed_leaves_out_other_promotions_on_the_same_day():
+    """Oct 2026: an 'Alex Pereira' and a 'Dan Hooker' fought unknown opponents elsewhere on the UFC card's date."""
+    fights = pd.DataFrame({
+        "date": pd.to_datetime(["2026-08-01", "2026-09-01", "2026-09-05", "2026-07-01", "2026-06-01"]),
+        "name_a": ["Mike Malott", "Erin Blanchfield", "Kyle Daukaus", "Alex Pereira", "Dan Hooker"],
+        "name_b": ["Joaquin Buckley", "Jasmine Jasudavicius", "Marc-Andre Barriault", "Timmy Cuamba", "Someone Else"],
+    })
+
+    def ev(a, b, start, pa=1.8, pb=2.0):
+        return {"home_team": a, "away_team": b, "commence_time": start, "bookmakers": [
+            {"key": "tab", "title": "TAB", "markets": [{"key": "h2h", "outcomes": [
+                {"name": a, "price": pa}, {"name": b, "price": pb}]}]}]}
+
+    events = [ev("Mike Malott", "Joaquin Buckley", "2026-10-18T03:00:00Z"),
+              ev("Erin Blanchfield", "Jasmine Jasudavicius", "2026-10-18T01:00:00Z"),
+              ev("Kyle Daukaus", "Marc-Andre Barriault", "2026-10-17T21:00:00Z"),
+              ev("Louis Jourdain", "Timmy Cuamba", "2026-10-17T22:00:00Z"),       # a real debut on the UFC card
+              ev("Alex Pereira", "Dario Bellandi", "2026-10-17T16:00:00Z"),      # other promotion, same date
+              ev("Dan Hooker", "Viktor Cervinsky", "2026-10-17T14:00:00Z")]
+    card, event, day, start = odds.card_from_feed(events, fights, now=pd.Timestamp("2026-10-15T00:00:00Z"))
+    names = set(card["fighter_a"]) | set(card["fighter_b"])
+    assert "Alex Pereira" not in names and "Dan Hooker" not in names and "Louis Jourdain" in names
+    assert start == pd.Timestamp("2026-10-17T21:00:00Z") and event == "UFC: Malott vs. Buckley"
