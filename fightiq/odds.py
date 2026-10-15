@@ -163,13 +163,32 @@ def _match_known(name: str, known: dict, keys: list[str]) -> tuple[str, pd.Times
     return None
 
 
+def _events(bouts: pd.DataFrame, gap: pd.Timedelta = pd.Timedelta(hours=4),
+            margin: pd.Timedelta = pd.Timedelta(hours=3)) -> list[tuple[pd.DataFrame, pd.DataFrame]]:
+    """Split the feed's bouts into events, earliest first, as (sure bouts, all bouts) pairs.
+
+    Other promotions share the feed, and their fighters can be ex-UFC or share a name with a UFC fighter (an "Alex
+    Pereira" against an unknown opponent looks like a UFC debut). So an event is built from "sure" bouts, where both
+    fighters fought in the UFC recently, that start no more than `gap` apart (a card's bouts are listed 0-1.5 hours
+    apart, more early in the week when fewer have odds); a bout with a debutant joins only if it starts within `margin`
+    of those.
+    """
+    sure = bouts[bouts["sure"]].sort_values("start")
+    events = []
+    for _, run in sure.groupby((sure["start"].diff() > gap).cumsum()):
+        lo, hi = run["start"].min() - margin, run["start"].max() + margin
+        events.append((run, bouts[bouts["start"].between(lo, hi)]))
+    return events
+
+
 def card_from_feed(events: list[dict], fights: pd.DataFrame, now: pd.Timestamp | None = None,
-                   active_days: int = 450, min_bouts: int = 3):
+                   active_days: int = 450, min_bouts: int = 3, min_sure: int = 2):
     """Next UFC card from The Odds API's MMA feed (which also lists other promotions).
 
-    A bout counts as UFC when both fighters have UFC bouts on record, or one does and fought in the UFC
-    within `active_days` (the other is a debutant). The earliest US date with at least `min_bouts` such
-    bouts is the card. Names are switched to the fight data's spelling where they match.
+    A bout can be UFC when both fighters have UFC bouts on record, or one does and fought in the UFC within
+    `active_days` (the other is a debutant). It is sure when both fought in the UFC within `active_days`. The card is
+    the earliest event (see _events) with at least `min_sure` sure bouts and `min_bouts` bouts in all, dated by the US
+    Eastern date of its first bout. Names are switched to the fight data's spelling where they match.
     Returns (card, event name, event date, earliest start time in UTC) or None.
     """
     now = pd.Timestamp.now(tz="UTC") if now is None else (now.tz_convert("UTC") if now.tzinfo else
@@ -190,16 +209,15 @@ def card_from_feed(events: list[dict], fights: pd.DataFrame, now: pd.Timestamp |
                      "odds_a": p["odds_a"], "odds_b": p["odds_b"],
                      "odds_source": f"{p['fighter_a']}: {p['odds_a']:.2f} ({p['book_a']}) | "
                                     f"{p['fighter_b']}: {p['odds_b']:.2f} ({p['book_b']})",
-                     "start": start, "day": start.tz_convert("America/New_York").date()})
+                     "start": start, "sure": recent(ma) and recent(mb)})
     if not rows:
         return None
-    bouts = pd.DataFrame(rows)
-    counts = bouts.groupby("day").size()
-    days = sorted(d for d, n in counts.items() if n >= min_bouts)
-    if not days:
+    card = next((c for run, c in _events(pd.DataFrame(rows)) if len(run) >= min_sure and len(c) >= min_bouts), None)
+    if card is None:
         return None
-    card = bouts[bouts["day"] == days[0]].sort_values("start", ascending=False).reset_index(drop=True)
+    card = card.sort_values("start", ascending=False).reset_index(drop=True)
+    day = card["start"].min().tz_convert("America/New_York").date()
     main = card.iloc[0]
     event = f"UFC: {main['fighter_a'].split()[-1]} vs. {main['fighter_b'].split()[-1]}"
     return (card[["fighter_a", "fighter_b", "odds_a", "odds_b", "odds_source"]], event,
-            pd.Timestamp(days[0]), card["start"].min())
+            pd.Timestamp(day), card["start"].min())

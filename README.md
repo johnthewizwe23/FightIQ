@@ -100,7 +100,7 @@ the newcomer's reach; those are never bet).
 
 ## Public website (fully automatic, free)
 
-`.github/workflows/fightiq-site.yml` runs FightIQ on GitHub every day at 08:00 UTC (plus Saturday 14:00 UTC)
+`.github/workflows/fightiq-site.yml` runs FightIQ on GitHub every day (more often on Fridays, Saturdays and after events)
 and publishes a website with four pages: **This week** (picks, win chances, value bets, PDF), **Record**
 (every pick and bet with results, units, ROI and a profit chart), **Past fights** (search any UFC fight since 1994
 and see who the model would have picked, using only earlier fights, or browse every event with FightIQ's hit rate

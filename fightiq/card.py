@@ -2,7 +2,9 @@
 from __future__ import annotations
 
 import atexit
+import os
 import re
+import sys
 import time
 from datetime import date, datetime, timedelta
 
@@ -85,7 +87,7 @@ class _Browser:
 
     def get(self, url: str, ok, wait_s: float = 25.0) -> str:
         html = self._load(url, ok, wait_s)
-        if not ok(html) and self.headless:
+        if not ok(html) and self.headless and _can_show_window():
             # some checks don't clear in a hidden browser; retry with a visible window
             self.close()
             self.headless = False
@@ -101,14 +103,15 @@ class _Browser:
         except Exception as exc:  # a navigation the check triggers mid-load can interrupt goto
             print(f"(browser: {str(exc).splitlines()[0]})")
         deadline = time.time() + wait_s
-        html = self._page.content()
-        while not ok(html) and time.time() < deadline:
-            self._page.wait_for_timeout(1000)
+        html = ""
+        while True:
             try:
                 html = self._page.content()
-            except Exception:  # page is mid-navigation
-                continue
-        return html
+            except Exception:  # the browser check is still redirecting ("page is navigating"): try again shortly
+                pass  # keep the last page read, so a failure can still show what the site served
+            if ok(html) or time.time() >= deadline:
+                return html
+            self._page.wait_for_timeout(1000)
 
     def _start(self) -> None:
         try:
@@ -142,8 +145,19 @@ class _Browser:
 _browser = _Browser()
 
 
+def _can_show_window() -> bool:
+    """False on a server with no screen (GitHub's Linux runner), where a visible Chrome can't start."""
+    return not sys.platform.startswith("linux") or bool(os.environ.get("DISPLAY") or os.environ.get("WAYLAND_DISPLAY"))
+
+
 def browser_get(url: str, ok) -> str:
     return _browser.get(url, ok)
+
+
+def reset_browser() -> None:
+    """Close the browser so the next page starts a fresh, hidden one (used between scrape attempts)."""
+    _browser.close()
+    _browser.headless = True
 
 
 def page_summary(html: str) -> str:
