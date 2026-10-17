@@ -1,0 +1,314 @@
+{
+  "event": "UFC 333: Volkanovski vs. Evloev",
+  "date": "2026-10-24",
+  "slug": "2026-10-24_UFC-333-Volkanovski-vs-Evloev",
+  "source": "ufcstats.com",
+  "published_at": "2026-10-17T21:44:23+00:00",
+  "updated_at": "2026-10-17T21:44:23+00:00",
+  "locks_at": "2026-10-24T14:00:00+00:00",
+  "bouts": [
+    {
+      "pick": "Movsar Evloev",
+      "opponent": "Alexander Volkanovski",
+      "p": 0.5498,
+      "p_model": 0.6452,
+      "p_market": 0.5076,
+      "odds": 1.96,
+      "opp_odds": 2.02,
+      "debut": false,
+      "debut_names": [],
+      "bet": "Movsar Evloev",
+      "bet_odds": 1.96,
+      "bet_p": 0.5498,
+      "edge": 0.0777,
+      "stake": 2.0,
+      "first_odds": {
+        "Movsar Evloev": 1.96,
+        "Alexander Volkanovski": 2.02
+      },
+      "suggested": {
+        "Movsar Evloev": {
+          "odds": 1.96,
+          "at": "2026-10-17T21:44:23+00:00"
+        }
+      },
+      "bet_first": {
+        "odds": 1.96,
+        "at": "2026-10-17T21:44:23+00:00",
+        "side": "Movsar Evloev"
+      }
+    },
+    {
+      "pick": "Petr Yan",
+      "opponent": "Merab Dvalishvili",
+      "p": 0.5751,
+      "p_model": 0.4063,
+      "p_market": 0.6081,
+      "odds": 1.62,
+      "opp_odds": 2.48,
+      "debut": false,
+      "debut_names": [],
+      "bet": "Merab Dvalishvili",
+      "bet_odds": 2.48,
+      "bet_p": 0.4249,
+      "edge": 0.0537,
+      "stake": 0.91,
+      "first_odds": {
+        "Petr Yan": 1.62,
+        "Merab Dvalishvili": 2.48
+      },
+      "suggested": {
+        "Merab Dvalishvili": {
+          "odds": 2.48,
+          "at": "2026-10-17T21:44:23+00:00"
+        }
+      },
+      "bet_first": {
+        "odds": 2.48,
+        "at": "2026-10-17T21:44:23+00:00",
+        "side": "Merab Dvalishvili"
+      }
+    },
+    {
+      "pick": "Lone'er Kavanagh",
+      "opponent": "Ramazan Temirov",
+      "p": 0.5005,
+      "p_model": 0.5018,
+      "p_market": 0.5,
+      "odds": 1.91,
+      "opp_odds": 1.91,
+      "debut": false,
+      "debut_names": [],
+      "bet": null,
+      "bet_odds": null,
+      "bet_p": null,
+      "edge": null,
+      "stake": null,
+      "first_odds": {
+        "Lone'er Kavanagh": 1.91,
+        "Ramazan Temirov": 1.91
+      },
+      "suggested": {}
+    },
+    {
+      "pick": "Alexander Volkov",
+      "opponent": "Rizvan Kuniev",
+      "p": 0.5814,
+      "p_model": 0.7308,
+      "p_market": 0.5112,
+      "odds": 1.87,
+      "opp_odds": 1.95,
+      "debut": false,
+      "debut_names": [],
+      "bet": "Alexander Volkov",
+      "bet_odds": 1.87,
+      "bet_p": 0.5814,
+      "edge": 0.0873,
+      "stake": 2.0,
+      "first_odds": {
+        "Alexander Volkov": 1.87,
+        "Rizvan Kuniev": 1.95
+      },
+      "suggested": {
+        "Alexander Volkov": {
+          "odds": 1.87,
+          "at": "2026-10-17T21:44:23+00:00"
+        }
+      },
+      "bet_first": {
+        "odds": 1.87,
+        "at": "2026-10-17T21:44:23+00:00",
+        "side": "Alexander Volkov"
+      }
+    },
+    {
+      "pick": "Losene Keita",
+      "opponent": "Aaron Pico",
+      "p": 0.5059,
+      "p_model": 0.4431,
+      "p_market": 0.5237,
+      "odds": 1.83,
+      "opp_odds": 2.0,
+      "debut": false,
+      "debut_names": [],
+      "bet": null,
+      "bet_odds": null,
+      "bet_p": null,
+      "edge": null,
+      "stake": null,
+      "first_odds": {
+        "Losene Keita": 1.83,
+        "Aaron Pico": 2.0
+      },
+      "suggested": {}
+    },
+    {
+      "pick": "Azamat Murzakanov",
+      "opponent": "Dominick Reyes",
+      "p": 0.6551,
+      "p_model": 0.4283,
+      "p_market": 0.6842,
+      "odds": 1.42,
+      "opp_odds": 2.9,
+      "debut": false,
+      "debut_names": [],
+      "bet": null,
+      "bet_odds": null,
+      "bet_p": null,
+      "edge": null,
+      "stake": null,
+      "first_odds": {
+        "Azamat Murzakanov": 1.42,
+        "Dominick Reyes": 2.9
+      },
+      "suggested": {}
+    },
+    {
+      "pick": "Abdul Rakhman Yakhyaev",
+      "opponent": "Nikita Krylov",
+      "p": 0.8298,
+      "p_model": 0.6859,
+      "p_market": 0.8101,
+      "odds": 1.21,
+      "opp_odds": 4.5,
+      "debut": false,
+      "debut_names": [],
+      "bet": null,
+      "bet_odds": null,
+      "bet_p": null,
+      "edge": null,
+      "stake": null,
+      "first_odds": {
+        "Abdul Rakhman Yakhyaev": 1.21,
+        "Nikita Krylov": 4.5
+      },
+      "suggested": {}
+    },
+    {
+      "pick": "Cam Rowston",
+      "opponent": "Abus Magomedov",
+      "p": 0.5498,
+      "p_model": 0.5952,
+      "p_market": 0.5237,
+      "odds": 1.83,
+      "opp_odds": 2.0,
+      "debut": false,
+      "debut_names": [],
+      "bet": null,
+      "bet_odds": null,
+      "bet_p": null,
+      "edge": null,
+      "stake": null,
+      "first_odds": {
+        "Cam Rowston": 1.83,
+        "Abus Magomedov": 2.0
+      },
+      "suggested": {}
+    },
+    {
+      "pick": "Grant Dawson",
+      "opponent": "Nurullo Aliev",
+      "p": 0.5073,
+      "p_model": 0.4886,
+      "p_market": 0.5112,
+      "odds": 1.87,
+      "opp_odds": 1.95,
+      "debut": false,
+      "debut_names": [],
+      "bet": null,
+      "bet_odds": null,
+      "bet_p": null,
+      "edge": null,
+      "stake": null,
+      "first_odds": {
+        "Grant Dawson": 1.87,
+        "Nurullo Aliev": 1.95
+      },
+      "suggested": {}
+    },
+    {
+      "pick": "Colby Thicknesse",
+      "opponent": "Asaf Chopurov",
+      "p": 0.5501,
+      "p_model": 0.5501,
+      "p_market": null,
+      "odds": null,
+      "opp_odds": null,
+      "debut": true,
+      "debut_names": [
+        "Asaf Chopurov"
+      ],
+      "bet": null,
+      "bet_odds": null,
+      "bet_p": null,
+      "edge": null,
+      "stake": null,
+      "first_odds": {},
+      "suggested": {}
+    },
+    {
+      "pick": "Jacob Malkoun",
+      "opponent": "Abubakar Vagaev",
+      "p": 0.6943,
+      "p_model": 0.6943,
+      "p_market": null,
+      "odds": null,
+      "opp_odds": null,
+      "debut": false,
+      "debut_names": [],
+      "bet": null,
+      "bet_odds": null,
+      "bet_p": null,
+      "edge": null,
+      "stake": null,
+      "first_odds": {},
+      "suggested": {}
+    }
+  ],
+  "official": [
+    [
+      "Alexander Volkanovski",
+      "Movsar Evloev"
+    ],
+    [
+      "Petr Yan",
+      "Merab Dvalishvili"
+    ],
+    [
+      "Lone'er Kavanagh",
+      "Ramazan Temirov"
+    ],
+    [
+      "Alexander Volkov",
+      "Rizvan Kuniev"
+    ],
+    [
+      "Aaron Pico",
+      "Losene Keita"
+    ],
+    [
+      "Azamat Murzakanov",
+      "Dominick Reyes"
+    ],
+    [
+      "Nikita Krylov",
+      "Abdul Rakhman Yakhyaev"
+    ],
+    [
+      "Abus Magomedov",
+      "Cam Rowston"
+    ],
+    [
+      "Grant Dawson",
+      "Nurullo Aliev"
+    ],
+    [
+      "Colby Thicknesse",
+      "Asaf Chopurov"
+    ],
+    [
+      "Abubakar Vagaev",
+      "Jacob Malkoun"
+    ]
+  ]
+}
