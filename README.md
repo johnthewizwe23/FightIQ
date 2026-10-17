@@ -108,6 +108,8 @@ and average confidence per card) and **How it works** (method, factors, backtest
 default with a dark-mode switch; asset URLs carry a content hash so browsers always load the latest styles.
 
 * The card comes from ufcstats.com when it can be read; otherwise from The Odds API feed (UFC bouts only).
+* The next card goes up a day after the current card finishes, so the weekend's card stays on the home page while
+  it is fought and its results come in.
 * Picks refresh with the latest odds until the first bout starts, then lock and never change. Every update is
   committed to `site_data/` (one JSON per card + `tracking.csv`), so the history is public and timestamped.
 * Results are filled in from the fight data once each event is over.

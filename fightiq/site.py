@@ -32,6 +32,27 @@ HISTORY_FILE = "fight_history.json"
 # a card's lock only moves later (the first bout was rescheduled, or a wrong one dropped) if it changes this long before
 # the lock already published; nearer the time, one run's feed missing the first bout must not reopen the picks
 LOCK_FREEZE = pd.Timedelta(hours=12)
+# A card runs about 8 hours from its first bout to the end of the main event. The next card goes up a day after that,
+# so the weekend's card stays on the home page while it is fought and its results come in.
+CARD_HOURS = pd.Timedelta(hours=8)
+NEXT_CARD_GAP = pd.Timedelta(hours=24)
+
+
+def next_card_from(previous_lock, next_start=None) -> pd.Timestamp:
+    """When the card after one that locked at `previous_lock` may go up: a day after that card has finished, and at the
+    latest a day before the next card starts (for back-to-back events)."""
+    opens = pd.Timestamp(previous_lock) + CARD_HOURS + NEXT_CARD_GAP
+    return min(opens, pd.Timestamp(next_start) - NEXT_CARD_GAP) if next_start is not None else opens
+
+
+def shown_weeks(weeks: list[dict], now) -> list[dict]:
+    """The cards the website shows, oldest first: each one only from next_card_from() of the card before it."""
+    shown = []
+    for w in weeks:
+        if shown and pd.Timestamp(now) < next_card_from(shown[-1]["locks_at"], w["locks_at"]):
+            break
+        shown.append(w)
+    return shown
 UNITS = report_mod.UNITS_PER_BANKROLL
 FEATURE_TEXT = {
     "slpm": ("Strikes landed per minute", True),
@@ -143,6 +164,10 @@ def update(state: Path = STATE, site: Path = SITE, scrape: bool = True, now: pd.
             break
         except Exception as exc:  # blocked, changed, or no browser: fall back to the odds feed
             print(f"ufcstats.com card unavailable ({str(exc).splitlines()[0][:160]})")
+    pending = _pending_card(state, day, now) if card is not None else None
+    if pending:  # on fight day ufcstats.com can list next week's card first, before this week's card has started
+        print(f"ufcstats.com lists {name} next, but {pending['event']} hasn't locked yet - refreshing it from the odds feed")
+        card = None
     if card is not None and events:
         card, n = odds_mod.attach(card, odds_mod.best_prices(events))
         print(f"odds found for {n} of {len(card)} bouts")
@@ -200,6 +225,14 @@ def sync_tracking(rows: list[list], weeks: list[dict]) -> int:
     before = len(rows)
     rows[:] = [r for r in rows if (k := tr.row_key(r)) is None or k[0] not in cards or k in cards[k[0]]]
     return before - len(rows)
+
+
+def _pending_card(state: Path, day, now) -> dict | None:
+    """A published card that hasn't locked yet and is dated before `day` (more than a day before: the same event can
+    carry a date a day apart from ufcstats.com and the odds feed)."""
+    pending = [w for w in load_weeks(state) if pd.Timestamp(w["locks_at"]) > now
+               and pd.Timestamp(w["date"]) < pd.Timestamp(day) - pd.Timedelta(days=1)]
+    return pending[0] if pending else None
 
 
 def _pairs(card: pd.DataFrame) -> list[list[str]]:
@@ -333,6 +366,14 @@ def _publish(card, name, day, start, source, state, site, now, rows, predict_car
         day = pd.Timestamp(existing_path.name[:10])
     day_s = day.strftime("%Y-%m-%d")
     existing = json.loads(existing_path.read_text()) if existing_path else None
+    before = [w for w in load_weeks(state) if w["date"] < day_s]
+    if before:
+        first_bout = start.tz_convert("UTC") if start is not None else (existing["locks_at"] if existing else None)
+        opens = next_card_from(before[-1]["locks_at"], first_bout)
+        if now < opens:
+            print(f"{name}: held until {opens:%Y-%m-%d %H:%M} UTC - {before[-1]['event']} stays up until a day after "
+                  "it finishes")
+            return None
     if existing and source != "ufcstats.com":
         name = existing["event"]  # keep the official name once we have it
     # picks lock at the first bout's start; without a start time, conservatively 12:00 UTC the day before.
@@ -1066,8 +1107,12 @@ are rough.</p>"""
 
 def build(state: Path = STATE, site: Path = SITE) -> Path:
     weeks_dir, tracking_csv = _paths(state)
-    rows = read_tracking(tracking_csv)
-    weeks = load_weeks(state)
+    now = datetime.now(timezone.utc)
+    all_weeks = load_weeks(state)
+    weeks = shown_weeks(all_weeks, now)
+    held = all_weeks[len(weeks):]  # published early, before this rule: hidden until their time, never changed
+    held_days = {date.fromisoformat(w["date"]) for w in held}
+    rows = [r for r in read_tracking(tracking_csv) if tr._to_date(r[tr.DATE]) not in held_days]
     bt = json.loads((config.ROOT / "reports" / "backtest.json").read_text())
     meta = json.loads(config.MODEL_PATH.read_text()).get("meta", {})
     site.mkdir(parents=True, exist_ok=True)
@@ -1079,10 +1124,10 @@ def build(state: Path = STATE, site: Path = SITE) -> Path:
     (site / "assets" / "logo.svg").write_text(LOGO.replace('class="logo" ', 'xmlns="http://www.w3.org/2000/svg" ')
                                               .replace("var(--red)", "#D20A0A"))
     (site / ".nojekyll").write_text("")
-    if tracking_csv.exists():
-        (site / "data" / "tracking.csv").write_text(tracking_csv.read_text())
-    else:
-        (site / "data" / "tracking.csv").write_text(",".join(tr.COLUMNS) + "\n")
+    write_tracking(site / "data" / "tracking.csv", rows)
+    for w in held:  # pages left from an earlier build
+        (site / "weeks" / f'{w["slug"]}.html').unlink(missing_ok=True)
+        (site / "data" / "weeks" / f'{w["slug"]}.json').unlink(missing_ok=True)
     updated = max([w["updated_at"] for w in weeks], default=None)
 
     for w in weeks:
@@ -1092,7 +1137,6 @@ def build(state: Path = STATE, site: Path = SITE) -> Path:
 
     # the next card whose picks are still open; once every card has locked, the latest one (live or just finished).
     # The card before it is shown in the "Last card" strip with its result.
-    now = datetime.now(timezone.utc)
     open_cards = [w for w in weeks if datetime.fromisoformat(w["locks_at"]) > now]
     current = open_cards[0] if open_cards else (weeks[-1] if weeks else None)
     if current:

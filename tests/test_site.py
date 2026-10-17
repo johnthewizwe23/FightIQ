@@ -102,9 +102,9 @@ def test_sync_tracking_drops_rows_left_over_from_an_earlier_version_of_a_card():
 def test_home_page_moves_to_the_next_card_once_it_is_published(tmp_path):
     state, out = tmp_path / "state", tmp_path / "site"
     (state / "weeks").mkdir(parents=True)
-    finished = (date.today() - timedelta(days=1)).isoformat()
-    nxt = (date.today() + timedelta(days=6)).isoformat()
-    (state / "weeks" / f"{finished}_UFC-Test-Night.json").write_text(json.dumps(_week(finished, f"{finished}T21:00:00+00:00", BOUTS)))
+    finished = (date.today() - timedelta(days=2)).isoformat()  # finished over a day ago
+    nxt = (date.today() + timedelta(days=5)).isoformat()
+    (state / "weeks" / f"{finished}_UFC-Test-Night.json").write_text(json.dumps(_week(finished, f"{finished}T00:00:00+00:00", BOUTS)))
     site.build(state, out)
     assert "Picks locked" in (out / "index.html").read_text()  # no newer card yet: keep showing the finished one
     week = dict(_week(nxt, f"{nxt}T21:00:00+00:00", BOUTS), event="UFC Next Night", slug=f"{nxt}_UFC-Next-Night")
@@ -255,3 +255,59 @@ def test_fight_table_opens_by_confidence_and_can_switch_to_card_order(tmp_path):
     (state / "weeks" / f"{upcoming}_UFC-Test-Night.json").write_text(json.dumps(dict(week, source="odds feed")))
     site.build(state, out)
     assert 'class="slot"' not in (out / "index.html").read_text()
+
+
+def test_next_card_stays_hidden_until_a_day_after_the_current_card_finishes(tmp_path):
+    """Oct 2026: next week's card took over the home page an hour into this week's card."""
+    from datetime import datetime, timezone
+    state, out = tmp_path / "state", tmp_path / "site"
+    (state / "weeks").mkdir(parents=True)
+    now = datetime.now(timezone.utc).replace(microsecond=0)
+    started = now - timedelta(hours=1)  # this week's card locked an hour ago
+    today, nxt = started.date().isoformat(), (started.date() + timedelta(days=7)).isoformat()
+    (state / "weeks" / f"{today}_UFC-Test-Night.json").write_text(json.dumps(_week(today, started.isoformat(), BOUTS)))
+    week = dict(_week(nxt, f"{nxt}T21:00:00+00:00", BOUTS), event="UFC Next Night", slug=f"{nxt}_UFC-Next-Night")
+    (state / "weeks" / f"{nxt}_UFC-Next-Night.json").write_text(json.dumps(week))
+    rows = [[pd.Timestamp(d).to_pydatetime(), e, "Brendan Allen vs Christian Leroy Duncan", "Brendan Allen", 0.62,
+             None, None, None, None, None] for d, e in ((today, "UFC Test Night"), (nxt, "UFC Next Night"))]
+    site.write_tracking(state / "tracking.csv", rows)
+    (out / "weeks").mkdir(parents=True)
+    (out / "weeks" / f"{nxt}_UFC-Next-Night.html").write_text("left from an earlier build")
+    site.build(state, out)
+    index = (out / "index.html").read_text()
+    assert "UFC Test Night" in index and "Picks locked" in index and "UFC Next Night" not in index
+    assert "UFC Next Night" not in (out / "record.html").read_text()
+    assert not (out / "weeks" / f"{nxt}_UFC-Next-Night.html").exists()
+    assert not (out / "data" / "weeks" / f"{nxt}_UFC-Next-Night.json").exists()
+    assert nxt not in (out / "data" / "tracking.csv").read_text()
+    assert len(site.read_tracking(state / "tracking.csv")) == 2  # the record itself is untouched
+    # a day after the card finished (8 hours after its first bout), the next card goes up
+    opens = site.next_card_from(started.isoformat(), week["locks_at"])
+    assert opens == pd.Timestamp(started) + pd.Timedelta(hours=32)
+    assert [w["event"] for w in site.shown_weeks(site.load_weeks(state), opens)] == ["UFC Test Night", "UFC Next Night"]
+    # back-to-back events: never later than a day before the next card's first bout
+    assert site.next_card_from("2026-10-17T21:00:00+00:00", "2026-10-18T21:00:00+00:00") == pd.Timestamp(
+        "2026-10-17T21:00:00+00:00")
+
+
+def test_publishing_holds_the_next_card_and_fight_day_refreshes_the_current_one(tmp_path, monkeypatch):
+    state, out = tmp_path / "state", tmp_path / "site"
+    (state / "weeks").mkdir(parents=True)
+    current = dict(_week("2026-10-17", "2026-10-17T21:10:00+00:00", BOUTS), slug="2026-10-17_UFC-Test")
+    (state / "weeks" / "2026-10-17_UFC-Test.json").write_text(json.dumps(current))
+    monkeypatch.setattr(site, "_bouts", lambda picks: [dict(BOUTS[0])])
+    monkeypatch.setattr(site.report_mod, "render", lambda *a, **k: None)
+    monkeypatch.setattr(site.tr, "picks_to_rows", lambda picks, require_odds=False: [])
+    predict = lambda card, name, when: (pd.DataFrame({"Fighter A": card["fighter_a"]}), None)
+    card = pd.DataFrame({"fighter_a": ["Alexander Volkanovski"], "fighter_b": ["Movsar Evloev"]})
+    day, start = pd.Timestamp("2026-10-24"), pd.Timestamp("2026-10-24T12:00:00Z")
+    held = site._publish(card, "UFC 333", day, start, "ufcstats.com", state, out,
+                         pd.Timestamp("2026-10-17T21:44:00Z"), [], predict)
+    assert held is None and len(site.load_weeks(state)) == 1
+    up = site._publish(card, "UFC 333", day, start, "ufcstats.com", state, out,
+                       pd.Timestamp("2026-10-19T05:11:00Z"), [], predict)
+    assert up["event"] == "UFC 333" and len(site.load_weeks(state)) == 2
+    # on fight day, before this week's card locks, a later card from ufcstats.com is not the one to refresh
+    assert site._pending_card(state, "2026-10-24", pd.Timestamp("2026-10-17T18:00:00Z"))["slug"] == "2026-10-17_UFC-Test"
+    assert site._pending_card(state, "2026-10-24", pd.Timestamp("2026-10-17T21:30:00Z")) is None  # locked: move on
+    assert site._pending_card(state, "2026-10-18", pd.Timestamp("2026-10-17T18:00:00Z")) is None  # same event, a day off
