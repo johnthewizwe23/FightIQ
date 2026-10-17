@@ -590,7 +590,14 @@ def week_body(week: dict, rows: list[list], depth: int) -> str:
         msg = ("No value bets this week: the model agrees with the bookies on every fight." if has_odds
                else "Odds aren't posted yet. Value bets appear once the bookmakers price the card.")
         bets_html = f'<h2>{icon("target")}Value bets</h2><div class="empty">{msg}</div>'
-    rows_html = "".join(_pred_row(b, result(b, "pick")) for b in sorted(bouts, key=lambda b: -b["p"]))
+    # bouts are stored in card order (main event first, as ufcstats.com lists them); the page opens sorted by
+    # confidence and a toggle switches to card order. "Main event"/"Co-main" labels need the official running order.
+    official = week["source"] == "ufcstats.com" or bool(week.get("official"))
+    ordered = sorted(enumerate(bouts, start=1), key=lambda ib: -ib[1]["p"])
+    rows_html = "".join(_pred_row(b, result(b, "pick"), i, official) for i, b in ordered)
+    sort = ('<span class="sort" role="group" aria-label="Order fights by">'
+            '<button type="button" class="sort-btn" data-sort="conf" aria-pressed="true">Confidence</button>'
+            '<button type="button" class="sort-btn" data-sort="card" aria-pressed="false">Card order</button></span>')
     legend = ('<span class="legend"><span class="tier strong">Strong 70%+</span><span class="tier lean">Lean 60–70%</span>'
               '<span class="tier toss">Toss-up &lt;60%</span></span>')
     note = ("Win chance = FightIQ model blended with the best available bookmaker odds." if has_odds
@@ -598,13 +605,13 @@ def week_body(week: dict, rows: list[list], depth: int) -> str:
     return f"""{head}{tiles}
 <section>{bets_html}</section>
 <section>
-  <h2>{icon("glove")}Fight by fight {legend}</h2>
-  <div class="tape" role="table" aria-label="FightIQ picks for every fight">
+  <h2>{icon("glove")}Fight by fight {sort}{legend}</h2>
+  <div class="tape" role="table" aria-label="FightIQ picks for every fight" data-sort="conf">
     <div class="bout-row tape-head" role="row"><span role="columnheader">FightIQ pick</span><span role="columnheader">Win chance</span>
     <span role="columnheader">Opponent</span><span role="columnheader">Call</span></div>
     {rows_html}
   </div>
-  <p class="note">{note} Sorted by confidence. Full numbers: <a href="{up}data/weeks/{esc(week["slug"])}.json">JSON</a>.</p>
+  <p class="note">{note} <span class="sort-note">Sorted by confidence.</span> Full numbers: <a href="{up}data/weeks/{esc(week["slug"])}.json">JSON</a>.</p>
 </section>"""
 
 
@@ -652,9 +659,16 @@ def _badge(result: str | None) -> str:
     return f'<span class="res {cls}" title="{esc(RESULT_TITLES.get(result, result))}">{esc(result)}</span>'
 
 
-def _pred_row(b: dict, result: str | None) -> str:
+SLOTS = {1: "Main event", 2: "Co-main"}
+
+
+def _pred_row(b: dict, result: str | None, position: int = 0, official: bool = False) -> str:
+    """One fight. `position` is its place on the card (1 = main event); shown only in card order, and named for
+    the top two only when the running order is the official one."""
     label, cls = tier(b["p"])
     tags, opp_tags = [], ""
+    if official and position in SLOTS:
+        tags.append(f'<span class="slot">{SLOTS[position]}</span>')
     names = b.get("debut_names")
     if names is None and b["debut"]:
         tags.append('<span class="tag">Debut bout</span>')
@@ -674,7 +688,7 @@ def _pred_row(b: dict, result: str | None) -> str:
     call = "Toss-up" if label == "TOSS-UP" else label.title()
     tip = (f'{esc(b["pick"])}: {pct(b["p"], 1)}'
            + (f' · model {pct(b["p_model"], 1)} · bookies {pct(b["p_market"], 1)}' if b["p_market"] is not None else ""))
-    return f"""<div class="bout-row" role="row">
+    return f"""<div class="bout-row" role="row" data-card="{position}" data-p="{b["p"]:.4f}">
   <div class="corner pick" role="cell"><b>{esc(b["pick"])}</b><small>{odds}{"".join(tags)}</small></div>
   <div class="split" role="cell" data-tip="{tip}"><span class="seg {cls}" style="width:{b["p"] * 100:.1f}%">{pct(b["p"])}</span><span class="seg opp">{opp_text}</span></div>
   <div class="corner opp" role="cell"><b>{esc(b["opponent"])}</b><small>{opp_odds}{opp_tags}</small></div>
@@ -1207,6 +1221,13 @@ border-top:3px solid var(--ink);border-radius:0 0 4px 4px}
 .empty{background:var(--card);border:1.5px dashed var(--line-2);border-radius:6px;padding:22px;color:var(--muted);text-align:center}
 
 .legend{display:inline-flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+.sort{display:inline-flex;background:var(--card);border:1.5px solid var(--line-2);border-radius:999px;padding:3px;margin-left:6px}
+.sort-btn{appearance:none;border:0;background:transparent;color:var(--ink-2);font:700 13px/1 var(--display);letter-spacing:1px;
+text-transform:uppercase;padding:6px 11px 5px;border-radius:999px;cursor:pointer}
+.sort-btn:hover{color:var(--red)}.sort-btn[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.slot{display:none;font:700 12px/1 var(--display);letter-spacing:1px;text-transform:uppercase;color:var(--ink-2);
+background:var(--card-2);border-radius:3px;padding:4px 6px 3px}
+.tape[data-sort="card"] .slot{display:inline-block}
 .tier{display:inline-block;font:700 13px/1 var(--display);letter-spacing:.8px;text-transform:uppercase;border-radius:3px;padding:4px 7px 3px;color:#fff}
 .tier.strong{background:var(--strong)}.tier.lean{background:var(--lean)}.tier.toss{background:var(--toss)}
 .res{display:inline-grid;place-items:center;min-width:30px;height:30px;padding:0 5px;border-radius:999px;font:800 15px/1 var(--display);
@@ -1285,7 +1306,7 @@ text-transform:uppercase;padding:9px 16px 8px;border-radius:999px;display:inline
 .finder-bar input,.finder-bar select{font:inherit;font-size:16px;color:var(--ink);background:var(--card);border:1.5px solid var(--line-2);
 border-radius:6px;padding:11px 13px}
 .search input{width:100%;padding-left:42px}.finder-bar select{font-weight:600;flex:0 1 auto}
-.finder-bar input:focus,.finder-bar select:focus,.chip:focus-visible,.tab:focus-visible,.ev-link:focus-visible,.btn:focus-visible,
+.finder-bar input:focus,.finder-bar select:focus,.chip:focus-visible,.tab:focus-visible,.sort-btn:focus-visible,.ev-link:focus-visible,.btn:focus-visible,
 .theme:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
 .chips{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:12px 0 4px}
 .chips > span{font:700 13px/1 var(--display);letter-spacing:1.4px;text-transform:uppercase;color:var(--muted);margin-right:4px}
@@ -1315,7 +1336,7 @@ text-decoration:underline;text-decoration-color:var(--line-2);text-underline-off
 .top-in{flex-wrap:wrap;gap:0 12px;min-height:0;padding-top:10px}.word{font-size:26px}
 .brand{order:1}.theme{order:2}nav{order:3;width:calc(100% + 32px);overflow-x:auto;scrollbar-width:none;margin:4px -16px 0;padding:0 8px}
 nav::-webkit-scrollbar{display:none}nav a{padding:12px 10px 10px;font-size:16px;white-space:nowrap}
-h1{font-size:38px}h2{font-size:22px}.legend{margin-left:0}
+h1{font-size:38px}h2{font-size:22px}.legend{margin-left:0}.sort{margin-left:0}
 .poster{padding:24px 18px 20px}.watermark{width:230px;height:230px;right:-80px;top:-40px}
 .board{grid-template-columns:1fr 1fr}.cell{border-left:0;border-top:1px solid var(--line);padding:12px 14px 14px}
 .cell:nth-child(-n+2){border-top:0}.cell:nth-child(even){border-left:1px solid var(--line)}
@@ -1352,6 +1373,23 @@ JS = r"""
   });
   document.querySelectorAll('time[datetime]').forEach(function(t){var d=new Date(t.getAttribute('datetime'));
     if(!isNaN(d))t.textContent=d.toLocaleString(undefined,{weekday:'short',day:'numeric',month:'short',hour:'numeric',minute:'2-digit'})});
+  var tape=document.querySelector('.tape[data-sort]');
+  if(tape){
+    var rows=[].slice.call(tape.querySelectorAll('.bout-row[data-card]')),btns=document.querySelectorAll('.sort-btn'),
+      note=document.querySelector('.sort-note');
+    function order(mode){
+      rows.sort(mode==='card'?function(a,b){return a.dataset.card-b.dataset.card}
+        :function(a,b){return (b.dataset.p-a.dataset.p)||(a.dataset.card-b.dataset.card)});
+      rows.forEach(function(r){tape.appendChild(r)});
+      tape.setAttribute('data-sort',mode);
+      btns.forEach(function(b){b.setAttribute('aria-pressed',String(b.dataset.sort===mode))});
+      if(note)note.textContent=mode==='card'?'In card order, main event first.':'Sorted by confidence.';
+    }
+    btns.forEach(function(b){b.addEventListener('click',function(){order(b.dataset.sort);
+      try{localStorage.setItem('fightiq-sort',b.dataset.sort)}catch(e){}})});
+    var saved=null;try{saved=localStorage.getItem('fightiq-sort')}catch(e){}
+    if(saved==='card')order('card');
+  }
   var theme=document.querySelector('.theme');
   if(theme)theme.addEventListener('click',function(){
     var root=document.documentElement,next=root.getAttribute('data-theme')==='dark'?'light':'dark';
