@@ -175,7 +175,9 @@ def _rows(picks: pd.DataFrame) -> list[dict]:
             "p": pa if pick_is_a else 1 - pa,
             "pick_odds": (p["Odds A"] if pick_is_a else p["Odds B"]) if has_odds else None,
             "opp_odds": (p["Odds B"] if pick_is_a else p["Odds A"]) if has_odds else None,
-            "debut": "debut" in str(p.get("Notes", "")),
+            # who is debuting: predict.resolve_card notes "<name>: no UFC history (debut)" per fighter
+            "debut": [n for n in ((a, b) if pick_is_a else (b, a))
+                      if f"{n}: no UFC history" in str(p.get("Notes", ""))],
             "bet": p["Bet"] if isinstance(p["Bet"], str) and p["Bet"] else None,
             "bet_odds": p["Bet odds"], "ev": p["EV"], "stake": p["Stake (% bankroll)"],
             "bet_p": (pa if p["Bet"] == a else 1 - pa) if isinstance(p["Bet"], str) and p["Bet"] else None,
@@ -255,10 +257,16 @@ def _predictions_page(c, rows, event, when):
             c.rect(M, y, CONTENT_W, row_h, stroke=0, fill=1)
         c.setFillColor(color)
         c.rect(M, y, 1.4 * mm, row_h, stroke=0, fill=1)
-        text(c, cols["pick"], y + 6.8 * mm, r["pick"], "Helvetica-Bold", 10.5, INK, max_w=66 * mm)
-        text(c, cols["pick"], y + 2.6 * mm, f"vs {r['opp']}", "Helvetica", 7.5, GREY, max_w=50 * mm)
-        if r["debut"]:
-            badge(c, cols["pick"] + 52 * mm, y + 2.0 * mm, 12 * mm, 3.6 * mm, "DEBUT", AMBER, size=5.5, outline=True)
+        # a "UFC DEBUT" tag sits right after the name of the fighter who is debuting
+        for fighter, line, line_y, font, size, max_w, ink in (
+                (r["pick"], r["pick"], y + 6.8 * mm, "Helvetica-Bold", 10.5, 66 * mm, INK),
+                (r["opp"], f"vs {r['opp']}", y + 2.6 * mm, "Helvetica", 7.5, 50 * mm, GREY)):
+            debut = fighter in r["debut"]
+            shown, used = fit(c, line, font, size, min(max_w, 56 * mm) if debut else max_w)
+            text(c, cols["pick"], line_y, shown, font, used, ink)
+            if debut:
+                bx = cols["pick"] + c.stringWidth(shown, font, used) + 1.5 * mm
+                badge(c, bx, line_y - 0.7 * mm, 14 * mm, 3.4 * mm, "UFC DEBUT", AMBER, size=5.2, outline=True)
         bar_w, bar_h = 52 * mm, 3.2 * mm
         by = y + row_h / 2 - bar_h / 2
         c.setFillColor(LINE)
@@ -281,8 +289,10 @@ def _predictions_page(c, rows, event, when):
             target_icon(c, cols["odds"] - 15 * mm, y + row_h / 2, 1.5 * mm)
 
     y -= 7 * mm
-    note = ("Win chance = FightIQ model blended with bookmaker odds." if has_odds
-            else "Win chance = FightIQ stats model. Add odds for the blended number and bets.")
+    missing = sum(r["pick_odds"] is None for r in rows)
+    note = ("Win chance = FightIQ stats model. Add odds for the blended number and bets." if not has_odds
+            else "Win chance = FightIQ model blended with bookmaker odds; bouts without odds (–) show the stats model alone."
+            if missing else "Win chance = FightIQ model blended with bookmaker odds.")
     text(c, M, y, note + "  Sorted by confidence.", "Helvetica", 7, GREY)
     footer(c, event, c.getPageNumber())
 
