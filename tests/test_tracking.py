@@ -92,3 +92,19 @@ def test_settle_matches_bookmaker_spellings():
                 odds=2.6, stake=1.0)]
     assert t.settle(rows, FIGHTS, today=date(2026, 10, 14)) == 1
     assert rows[0][t.PICK_RES] == "W" and rows[0][t.BET_RES] == "W"
+
+
+def test_report_debut_tag_names_the_debuting_fighter():
+    """UFC 333: Thicknesse (3 UFC fights) is the pick, his opponent Chopurov is the one debuting."""
+    from fightiq import report
+    picks = pd.DataFrame([
+        {"Fighter A": "Colby Thicknesse", "Fighter B": "Asaf Chopurov", "FightIQ P(A)": 0.55, "Odds A": np.nan,
+         "Odds B": np.nan, "Bet": "", "Bet odds": np.nan, "EV": np.nan, "Stake (% bankroll)": np.nan,
+         "Notes": "Asaf Chopurov: no UFC history (debut)"},
+        {"Fighter A": "Joel Faglier", "Fighter B": "Javad Mahjoub", "FightIQ P(A)": 0.57, "Odds A": 1.87,
+         "Odds B": 2.16, "Bet": "", "Bet odds": np.nan, "EV": np.nan, "Stake (% bankroll)": np.nan,
+         "Notes": "Javad Mahjoub: no UFC history (debut); Joel Faglier: no UFC history (debut)"},
+    ])
+    rows = report._rows(picks)
+    assert rows[0]["pick"] == "Colby Thicknesse" and rows[0]["debut"] == ["Asaf Chopurov"]
+    assert rows[1]["debut"] == ["Joel Faglier", "Javad Mahjoub"]
