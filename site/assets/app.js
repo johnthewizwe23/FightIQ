@@ -16,6 +16,23 @@
   });
   document.querySelectorAll('time[datetime]').forEach(function(t){var d=new Date(t.getAttribute('datetime'));
     if(!isNaN(d))t.textContent=d.toLocaleString(undefined,{weekday:'short',day:'numeric',month:'short',hour:'numeric',minute:'2-digit'})});
+  var tape=document.querySelector('.tape[data-sort]');
+  if(tape){
+    var rows=[].slice.call(tape.querySelectorAll('.bout-row[data-card]')),btns=document.querySelectorAll('.sort-btn'),
+      note=document.querySelector('.sort-note');
+    function order(mode){
+      rows.sort(mode==='card'?function(a,b){return a.dataset.card-b.dataset.card}
+        :function(a,b){return (b.dataset.p-a.dataset.p)||(a.dataset.card-b.dataset.card)});
+      rows.forEach(function(r){tape.appendChild(r)});
+      tape.setAttribute('data-sort',mode);
+      btns.forEach(function(b){b.setAttribute('aria-pressed',String(b.dataset.sort===mode))});
+      if(note)note.textContent=mode==='card'?'In card order, main event first.':'Sorted by confidence.';
+    }
+    btns.forEach(function(b){b.addEventListener('click',function(){order(b.dataset.sort);
+      try{localStorage.setItem('fightiq-sort',b.dataset.sort)}catch(e){}})});
+    var saved=null;try{saved=localStorage.getItem('fightiq-sort')}catch(e){}
+    if(saved==='card')order('card');
+  }
   var theme=document.querySelector('.theme');
   if(theme)theme.addEventListener('click',function(){
     var root=document.documentElement,next=root.getAttribute('data-theme')==='dark'?'light':'dark';
