@@ -3,6 +3,8 @@
 #  - Friday every 6 hours and Saturday 10:41-19:41 UTC: odds and late changes before a US Saturday-night card locks
 #  - Sunday and Monday every 4 hours: settle results as soon as the fight data has them
 #  - 1st of the month: refit the model first
+#  - whenever a code change is merged into main, so it goes live straight away (the bot's own commits don't
+#    trigger runs: pushes made with the workflow's token never do, and it only commits site/ and site_data/)
 # GitHub starts scheduled runs late when it is busy (often hours late for runs set on the hour), hence the odd
 # minutes and the extra runs before lock. Late runs are safe: a card is never changed after its lock time.
 # Needs: repository secret ODDS_API_KEY, and Settings > Pages > Source = "GitHub Actions".
@@ -15,6 +17,9 @@ on:
     - cron: "41 10,13,16,18,19 * * 6"     # Saturday: several chances to refresh odds before the card locks
     - cron: "17 */4 * * 0,1"              # Sunday and Monday every 4 hours: results soon after each event
     - cron: "30 6 1 * *"
+  push:
+    branches: [main]
+    paths: ["fightiq/**", "models/**", "reports/**", "requirements.txt", ".github/workflows/fightiq-site.yml"]
   workflow_dispatch:
     inputs:
       retrain:
