@@ -236,3 +236,22 @@ def test_debut_tag_sits_with_the_debuting_fighter():
     row = site._pred_row(b, None)
     pick_cell, opp_cell = row.split('class="corner opp"')
     assert "UFC debut" not in pick_cell and "UFC debut" in opp_cell
+
+
+def test_fight_table_opens_by_confidence_and_can_switch_to_card_order(tmp_path):
+    state, out = tmp_path / "state", tmp_path / "site"
+    (state / "weeks").mkdir(parents=True)
+    upcoming = (date.today() + timedelta(days=2)).isoformat()
+    week = dict(_week(upcoming, f"{upcoming}T23:00:00+00:00", BOUTS), source="ufcstats.com")
+    (state / "weeks" / f"{upcoming}_UFC-Test-Night.json").write_text(json.dumps(week))
+    site.build(state, out)
+    index = (out / "index.html").read_text()
+    # Camilo (76%) is listed first, but Allen vs Duncan is the main event (card position 1) for the toggle
+    assert index.index('data-card="2" data-p="0.7600"') < index.index('data-card="1" data-p="0.6200"')
+    assert 'data-sort="card" aria-pressed="false">Card order</button>' in index
+    assert 'class="slot">Main event</span>' in index and 'class="slot">Co-main</span>' in index
+    assert "fightiq-sort" in (out / "assets" / "app.js").read_text()
+    # a card that only came from the odds feed has no reliable running order, so no "Main event" label
+    (state / "weeks" / f"{upcoming}_UFC-Test-Night.json").write_text(json.dumps(dict(week, source="odds feed")))
+    site.build(state, out)
+    assert 'class="slot"' not in (out / "index.html").read_text()
