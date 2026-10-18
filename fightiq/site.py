@@ -71,6 +71,9 @@ FEATURE_TEXT = {
     "adj_ctrl": ("Control time compared with what each opponent usually allows", True),
     "adj_ctrld": ("Control time conceded compared with each opponent's usual", False),
     "adj_acc": ("Strike accuracy compared with each opponent's usual defence", True),
+    "pro_win_pct": ("Win rate in pro fights outside the UFC (regional shows, Contender Series)", True),
+    "pro_fights": ("Total pro fights, inside and outside the UFC", True),
+    "pro_years": ("Years since the first pro fight", True),
     "ctrl_avg": ("Control time per 15 minutes", False),
     "experience": ("Number of UFC fights", False),
     "layoff": ("Time since last fight", False),
@@ -986,10 +989,11 @@ def model_body(bt: dict, model_meta: dict) -> str:
     y0, y1 = bt["test_years"]
     trained = bt["trained"]
     steps = [
-        ("data", "Real fight data", "Round-by-round stats for every UFC bout since UFC 1, from ufcstats.com, refreshed daily."),
+        ("data", "Real fight data", "Round-by-round stats for every UFC bout since UFC 1, from ufcstats.com, refreshed daily, "
+                                    "plus each fighter's pro record outside the UFC from Sherdog."),
         ("clock", "Only what was known", "Each fighter's numbers are rebuilt as they stood the day before the fight. No hindsight."),
-        ("glove", "Compare the fighters", "A logistic regression (plain statistics, not AI) turns 12 differences between the two "
-                                          "fighters into a win chance."),
+        ("glove", "Compare the fighters", f"A logistic regression (plain statistics, not AI) turns {len(feats)} differences "
+                                          "between the two fighters into a win chance."),
         ("target", "Blend with the odds", "The model adjusts the bookmakers' price. A bet needs a 5%+ edge; stakes are small and capped."),
     ]
     step_html = "".join(f'<div class="round"><span class="rnum">Round {n}</span>{icon(i)}<h3>{esc(t)}</h3><p>{esc(d)}</p></div>'

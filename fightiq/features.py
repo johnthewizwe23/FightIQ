@@ -10,7 +10,7 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
-from . import ratings
+from . import ratings, records
 
 # Pseudo-counts that pull small samples toward the league average. A fighter with
 # one short UFC fight otherwise gets extreme rates (e.g. 100% takedown defence).
@@ -33,8 +33,9 @@ ADJ = ["adj_slpm", "adj_sapm", "adj_td", "adj_tdd", "adj_ctrl", "adj_ctrld", "ad
 # Production feature set. Win %, recent form, sub avg, KD avg and TD accuracy added nothing once a rating was in the
 # model. Glicko (rating + its uncertainty) replaced Elo and the opponent-adjusted stats were added in Oct 2026: the
 # walk-forward log loss of the stats model improved by about 0.005 on both 2015-2020 and 2021-2026.
+# Pro records outside the UFC (Sherdog) followed: about 0.003 more on both periods (fightiq/records.py).
 FEATURES_FULL = ["slpm", "exp_str_acc", "sapm", "td_avg", "reach", "age", "glicko", "glicko_rd",
-                 "ctrl_avg", "experience", "layoff", "age_old", "debut"] + ADJ
+                 "ctrl_avg", "experience", "layoff", "age_old", "debut"] + ADJ + records.FEATURES
 
 _SUM_COLS = ["minutes", "sig_l", "sig_a", "td_l", "td_a", "kd", "sub_att", "ctrl",
              "opp_sig_l", "opp_sig_a", "opp_td_l", "opp_td_a", "fights", "wins", "losses"]
@@ -241,7 +242,12 @@ def build(fights: pd.DataFrame, rounds: pd.DataFrame, fighters: pd.DataFrame,
         out[f"age_{s}"] = (out["date"] - pd.to_datetime(at["dob"].to_numpy())).dt.days / 365.25
         out[f"layoff_{s}"] = (out["date"] - out[f"prev_date_{s}"]).dt.days
     _impute_attributes(out)
-    return add_matchup_features(out)
+    done = allf[~allf["upcoming"]]
+    first_ufc = pd.concat([done[["id_a", "date"]].set_axis(["fid", "date"], axis=1),
+                           done[["id_b", "date"]].set_axis(["fid", "date"], axis=1)]).groupby("fid")["date"].min()
+    pro = records.features(out, first_ufc)
+    out = add_matchup_features(out)
+    return pd.concat([out, pro], axis=1)
 
 
 def _impute_attributes(out: pd.DataFrame) -> None:

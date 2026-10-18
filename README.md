@@ -184,13 +184,20 @@ Re-run `train` every month or so to refit on the newest fights.
 1. **Data**: [Greco1899/scrape_ufc_stats](https://github.com/Greco1899/scrape_ufc_stats), a daily-refreshed
    scrape of ufcstats.com (every event, bout result and round-by-round stat line, plus fighter height, reach
    and date of birth). The files are downloaded at runtime into `data/raw/`; they aren't stored in this repo.
+   Two more sources are kept in the repo: every fighter's **pro record outside the UFC** from Sherdog
+   (`records/`, new fighters looked up automatically when a card is predicted) and **closing odds** for every UFC
+   bout since 2008 from bestfightodds.com (`odds_history/`).
 2. **Point-in-time stats** (`fightiq/features.py`): for each bout, each fighter's totals are summed over
    their UFC bouts on *earlier dates only*. Small samples are pulled toward the league average, so one
-   short fight can't give someone 100% takedown defence. Age is computed at fight date. An Elo rating is
-   updated fight by fight. Tests check that adding later fights never changes an earlier fight's features.
-3. **Features**: A-minus-B differences of strikes landed/absorbed per minute, expected striking accuracy
+   short fight can't give someone 100% takedown defence. Age is computed at fight date. A Glicko rating (finishes
+   count fully, split decisions half, with an uncertainty that grows with time out) is updated fight by fight. Tests
+   check that adding later fights never changes an earlier fight's features.
+3. **Features** (23, all A minus B): strikes landed/absorbed per minute, expected striking accuracy
    √(my accuracy × (1 − opponent's defence)) (kept from the original spreadsheet), takedowns per 15 min,
-   reach, age, age past 33, Elo, control time, UFC experience, layoff and a debut flag.
+   reach, age, age past 33, Glicko rating and its uncertainty, control time, UFC experience, layoff, a debut flag,
+   seven **opponent-adjusted** stats (strikes, takedowns and control relative to what each opponent usually allows,
+   last year weighted most) and three **pro-record** features (win rate outside the UFC, total pro fights, years as
+   a pro).
 4. **Model** (`fightiq/model.py`): logistic regression trained on every bout from both corners with no
    intercept, so P(A beats B) = 1 − P(B beats A) and entry order can't bias the number.
 5. **Blend**: logit(p) = a × logit(market) + b × model score (market = bookmaker probability with the margin
@@ -203,20 +210,26 @@ Re-run `train` every month or so to refit on the newest fights.
 Full details are in [`reports/evaluation.md`](reports/evaluation.md). Everything there is walk-forward:
 each year is predicted by a model trained only on earlier years.
 
-* The stats model alone picks **~62%** of winners from 2015 to 2026, which matches the old spreadsheet's live
-  record of 62.2%. The betting market picks ~66%. Stats alone don't beat the bookies.
-* The **blend beats the market price** on log loss, and the betting rule above returned **+16% ROI on 584
-  bets** from 2016 to 2026 (95% interval +7% to +26%), profitable in 10 of 11 years.
+* The stats model alone picks **62.5%** of winners from 2015 to 2026 (log loss 0.6437). The betting market picks
+  ~67%. Stats alone don't beat the bookies.
+* The **blend beats the market price**: 67.7% of winners, log loss 0.6017 vs 0.6037 for the closing odds, and the
+  betting rule above returned **+12.7% ROI on 1,090 bets** from 2016 to 2026 (95% interval +6% to +19%),
+  profitable in all 11 years.
+* October 2026 upgrade (each piece tested walk-forward, chosen on 2015-20 and confirmed once on 2021-26): Glicko
+  instead of Elo, the opponent-adjusted stats and the pro records together improved the stats model's log loss by
+  0.011 (2015-20) and 0.008 (2021-26), both outside bootstrap noise, and the blend by 0.002 on 2015-20 (level on
+  2021-26). Tried and dropped: home advantage (home fighters won 49.8%), line movement, momentum, recency weighting,
+  gradient boosting / forests / ensembles (no better than this single model).
 * The bookmaker margin is removed with the **power method** (more of it comes off the longshot), and 25 garbled
   historical prices (two sides implying under 100% or over 115%) are dropped. The power method was fixed in advance and
   made both the market and the blended probabilities slightly but consistently more accurate in 2016-20 and 2021-26;
   the ROI change (+14% to +16%) is well within noise. The Excel Predictor uses the identical calculation.
 * The website's Record page checks the **closing line**: each value bet's first posted odds against the last odds
   before the picks lock. Odds that usually shorten are the best early sign the edge is real.
-* Caveat: the historical odds come from a public dataset
-  ([shortlikeafox/ultimate_ufc_dataset](https://github.com/shortlikeafox/ultimate_ufc_dataset)) that doesn't
-  say whether they are opening, closing or best-available prices. If they're openers, real returns will be
-  lower. Log the odds you actually get, compare them with the closing line, and size small until the live
+* Historical odds are closing prices: the middle of each fighter's closing range across bookmakers
+  (bestfightodds.com), then the odds FightIQ itself published at lock, then the public
+  [ultimate_ufc_dataset](https://github.com/shortlikeafox/ultimate_ufc_dataset). Bets in the backtest settle at that
+  middle price. Log the odds you actually get, compare them with the closing line, and size small until the live
   record agrees.
 
 ## Project layout
@@ -224,7 +237,9 @@ each year is predicted by a model trained only on earlier years.
 ```
 fightiq/
   data.py       download + clean ufcstats data and historical odds
-  features.py   point-in-time fighter stats, Elo, matchup features
+  features.py   point-in-time fighter stats, opponent-adjusted stats, matchup features
+  ratings.py    Glicko ratings (fight by fight, point in time)
+  records.py    pro records outside the UFC (Sherdog), looked up for new fighters when a card is predicted
   model.py      symmetric logistic regression (saved as JSON in models/)
   evaluate.py   walk-forward backtest, market blend, betting simulation
   pipeline.py   train command: backtest, fit, write reports/evaluation.md
