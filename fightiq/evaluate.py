@@ -57,7 +57,7 @@ def attach_odds(X: pd.DataFrame, odds: pd.DataFrame) -> pd.DataFrame:
         o["pk"] = pair_key(o["date"], o["key_r"], o["key_b"])
         o["shift"] = abs(days)
         shifted.append(o)
-    o = pd.concat(shifted).sort_values("shift").drop_duplicates("pk")
+    o = pd.concat(shifted).sort_values("shift", kind="stable").drop_duplicates("pk")  # exact date, then source order
 
     out = X.copy()
     ka, kb = out["name_a"].map(norm_name), out["name_b"].map(norm_name)

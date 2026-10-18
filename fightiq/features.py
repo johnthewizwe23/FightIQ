@@ -10,6 +10,8 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
+from . import ratings, records
+
 # Pseudo-counts that pull small samples toward the league average. A fighter with
 # one short UFC fight otherwise gets extreme rates (e.g. 100% takedown defence).
 PRIOR_MINUTES = 15.0
@@ -23,10 +25,17 @@ DEFAULT_LAYOFF_DAYS = 365.0
 DEFAULT_AGE = 30.0
 
 FEATURES_CLASSIC = ["slpm", "exp_str_acc", "sapm", "td_avg", "exp_td_acc", "sub_avg", "reach", "age", "win_pct"]
-# Production feature set. Win %, recent form, sub avg, KD avg and TD accuracy added
-# nothing once Elo was in the model (walk-forward log loss was unchanged without them).
-FEATURES_FULL = ["slpm", "exp_str_acc", "sapm", "td_avg", "reach", "age", "elo",
-                 "ctrl_avg", "experience", "layoff", "age_old", "debut"]
+# Opponent-adjusted output: what a fighter did in each bout minus what that opponent usually allowed (or did), per
+# minute, weighted by recency (half-life ADJ_HALF_LIFE years). A takedown on a fighter who is never taken down counts
+# for more than one on a fighter who is taken down three times a fight.
+ADJ_HALF_LIFE = 1.0
+ADJ = ["adj_slpm", "adj_sapm", "adj_td", "adj_tdd", "adj_ctrl", "adj_ctrld", "adj_acc"]
+# Production feature set. Win %, recent form, sub avg, KD avg and TD accuracy added nothing once a rating was in the
+# model. Glicko (rating + its uncertainty) replaced Elo and the opponent-adjusted stats were added in Oct 2026: the
+# walk-forward log loss of the stats model improved by about 0.005 on both 2015-2020 and 2021-2026.
+# Pro records outside the UFC (Sherdog) followed: about 0.003 more on both periods (fightiq/records.py).
+FEATURES_FULL = ["slpm", "exp_str_acc", "sapm", "td_avg", "reach", "age", "glicko", "glicko_rd",
+                 "ctrl_avg", "experience", "layoff", "age_old", "debut"] + ADJ + records.FEATURES
 
 _SUM_COLS = ["minutes", "sig_l", "sig_a", "td_l", "td_a", "kd", "sub_att", "ctrl",
              "opp_sig_l", "opp_sig_a", "opp_td_l", "opp_td_a", "fights", "wins", "losses"]
@@ -50,14 +59,15 @@ def _long_table(fights: pd.DataFrame, rounds: pd.DataFrame) -> pd.DataFrame:
         oth = st.reindex(pd.MultiIndex.from_arrays([fights["fight_id"], [opp] * len(fights)]))
         for c in stat_cols:
             df[c] = own[c].to_numpy()
-        for c in ["sig_l", "sig_a", "td_l", "td_a"]:
+        for c in ["sig_l", "sig_a", "td_l", "td_a", "ctrl"]:
             df["opp_" + c] = oth[c].to_numpy()
         has_stats = own["sig_a"].notna().to_numpy() & oth["sig_a"].notna().to_numpy()
         df["minutes"] = np.where(has_stats, df["seconds"] / 60.0, 0.0)
+        df["opp_ctrl"] = np.where(has_stats, df["opp_ctrl"], 0.0)
         rows.append(df)
     long = pd.concat(rows, ignore_index=True)
     long = long.rename(columns={"won": "wins", "lost": "losses"})
-    stat_all = stat_cols + ["opp_sig_l", "opp_sig_a", "opp_td_l", "opp_td_a"]
+    stat_all = stat_cols + ["opp_sig_l", "opp_sig_a", "opp_td_l", "opp_td_a", "opp_ctrl"]
     long[stat_all] = long[stat_all].fillna(0.0)
     return long
 
@@ -101,6 +111,57 @@ def _elo(fights: pd.DataFrame, k: float = ELO_K) -> pd.DataFrame:
         for fid, delta in updates.items():
             rating[fid] = rating.get(fid, ELO_START) + delta
     return pd.DataFrame({"fight_id": f["fight_id"], "elo_a": pre_a, "elo_b": pre_b})
+
+
+def _pre_decay(day: pd.DataFrame, half_life_years: float) -> pd.DataFrame:
+    """Sum over each fighter's EARLIER fight days of x * 0.5 ** (years ago / half-life), at every fight day."""
+    d = day.reset_index()
+    t = (d["date"] - d.groupby("fighter_id")["date"].transform("min")).dt.days.to_numpy() / 365.25 / half_life_years
+    up, down = np.power(2.0, t), np.power(2.0, -t)
+    vals = day.to_numpy() * up[:, None]
+    cs = pd.DataFrame(vals, index=day.index).groupby(level=0).cumsum().to_numpy() - vals
+    return pd.DataFrame(cs * down[:, None], index=day.index, columns=day.columns)
+
+
+def _opponent_adjusted(long: pd.DataFrame, priors: dict[str, float]) -> pd.DataFrame:
+    """Per (fighter_id, date): recency-weighted output relative to what each opponent usually allowed/did."""
+    cols = ["minutes", "sig_l", "sig_a", "td_l", "td_a", "ctrl", "opp_sig_l", "opp_sig_a", "opp_td_l", "opp_td_a",
+            "opp_ctrl"]
+    day = long.groupby(["fighter_id", "date"])[cols].sum().sort_index()
+    pre = day.groupby(level=0).cumsum() - day  # each opponent's career rates going into the bout
+    m = pre["minutes"] + PRIOR_MINUTES
+    td_pm, ctrl_pm = priors["td_avg"] / 15, priors["ctrl_avg"] / 15
+    base = pd.DataFrame({
+        "slpm": (pre["sig_l"] + priors["slpm"] * PRIOR_MINUTES) / m,
+        "sapm": (pre["opp_sig_l"] + priors["slpm"] * PRIOR_MINUTES) / m,
+        "td_pm": (pre["td_l"] + td_pm * PRIOR_MINUTES) / m,
+        "ctrl_pm": (pre["ctrl"] / 60 + ctrl_pm * PRIOR_MINUTES) / m,
+        "td_allow": (pre["opp_td_l"] + td_pm * PRIOR_MINUTES) / m,
+        "ctrl_allow": (pre["opp_ctrl"] / 60 + ctrl_pm * PRIOR_MINUTES) / m,
+        "str_def": 1 - (pre["opp_sig_l"] + priors["str_acc"] * PRIOR_STRIKES) / (pre["opp_sig_a"] + PRIOR_STRIKES),
+    }, index=pre.index)
+    o = base.reindex(pd.MultiIndex.from_arrays([long["opp_id"], long["date"]]))
+    mins = long["minutes"].to_numpy()
+    res = pd.DataFrame({
+        "fighter_id": long["fighter_id"].to_numpy(), "date": long["date"].to_numpy(), "minutes": mins,
+        "r_sig_l": long["sig_l"].to_numpy() - o["sapm"].to_numpy() * mins,
+        "r_opp_sig_l": long["opp_sig_l"].to_numpy() - o["slpm"].to_numpy() * mins,
+        "r_td_l": long["td_l"].to_numpy() - o["td_allow"].to_numpy() * mins,
+        "r_opp_td_l": long["opp_td_l"].to_numpy() - o["td_pm"].to_numpy() * mins,
+        "r_ctrl": long["ctrl"].to_numpy() / 60 - o["ctrl_allow"].to_numpy() * mins,
+        "r_opp_ctrl": long["opp_ctrl"].to_numpy() / 60 - o["ctrl_pm"].to_numpy() * mins,
+        "sig_a": long["sig_a"].to_numpy(),
+        "r_acc": long["sig_l"].to_numpy() - long["sig_a"].to_numpy() * (1 - o["str_def"].to_numpy()),
+    }).fillna(0.0)
+    dd = res.groupby(["fighter_id", "date"]).sum().sort_index()
+    P = _pre_decay(dd, ADJ_HALF_LIFE)
+    m = P["minutes"] + PRIOR_MINUTES
+    return pd.DataFrame({
+        "adj_slpm": P["r_sig_l"] / m, "adj_sapm": P["r_opp_sig_l"] / m,
+        "adj_td": P["r_td_l"] / m * 15, "adj_tdd": P["r_opp_td_l"] / m * 15,
+        "adj_ctrl": P["r_ctrl"] / m * 15, "adj_ctrld": P["r_opp_ctrl"] / m * 15,
+        "adj_acc": P["r_acc"] / (P["sig_a"] + PRIOR_STRIKES),
+    }, index=dd.index)
 
 
 def league_priors(rounds: pd.DataFrame, fights: pd.DataFrame) -> dict[str, float]:
@@ -164,11 +225,11 @@ def build(fights: pd.DataFrame, rounds: pd.DataFrame, fighters: pd.DataFrame,
     long = _long_table(allf, rounds)
     # upcoming bouts must not add to anyone's totals
     up_mask = long["fight_id"].isin(allf.loc[allf["upcoming"], "fight_id"])
-    long.loc[up_mask, _SUM_COLS] = 0.0
+    long.loc[up_mask, _SUM_COLS + ["opp_ctrl"]] = 0.0
     pre = _pre_fight_totals(long)
-    stats = _fighter_stats(pre, priors)
+    stats = _fighter_stats(pre, priors).join(_opponent_adjusted(long, priors))
 
-    out = allf.merge(_elo(allf), on="fight_id", how="left")
+    out = allf.merge(_elo(allf), on="fight_id", how="left").merge(ratings.glicko(allf), on="fight_id", how="left")
     attrs = fighters.set_index("fighter_id")[["reach", "height", "dob", "stance"]]
     for s in ("a", "b"):
         st = stats.reindex(pd.MultiIndex.from_arrays([out[f"id_{s}"], out["date"]]))
@@ -181,7 +242,12 @@ def build(fights: pd.DataFrame, rounds: pd.DataFrame, fighters: pd.DataFrame,
         out[f"age_{s}"] = (out["date"] - pd.to_datetime(at["dob"].to_numpy())).dt.days / 365.25
         out[f"layoff_{s}"] = (out["date"] - out[f"prev_date_{s}"]).dt.days
     _impute_attributes(out)
-    return add_matchup_features(out)
+    done = allf[~allf["upcoming"]]
+    first_ufc = pd.concat([done[["id_a", "date"]].set_axis(["fid", "date"], axis=1),
+                           done[["id_b", "date"]].set_axis(["fid", "date"], axis=1)]).groupby("fid")["date"].min()
+    pro = records.features(out, first_ufc)
+    out = add_matchup_features(out)
+    return pd.concat([out, pro], axis=1)
 
 
 def _impute_attributes(out: pd.DataFrame) -> None:
@@ -212,6 +278,10 @@ def add_matchup_features(out: pd.DataFrame) -> pd.DataFrame:
     feats["age_old"] = np.maximum(a("age") - 33, 0) - np.maximum(b("age") - 33, 0)
     feats["win_pct"] = a("win_pct") - b("win_pct")
     feats["elo"] = (out["elo_a"] - out["elo_b"]) / 100.0
+    feats["glicko"] = out["glicko_lg"]  # the ratings' own log-odds that A wins
+    feats["glicko_rd"] = (out["glicko_rd_a"] - out["glicko_rd_b"]) / 100.0
+    for c in ADJ:
+        feats[c] = (a(c) - b(c)).fillna(0.0)
     feats["experience"] = np.log1p(a("ufc_fights")) - np.log1p(b("ufc_fights"))
     feats["layoff"] = np.log1p(a("layoff").clip(lower=0)) - np.log1p(b("layoff").clip(lower=0))
     feats["recent_form"] = a("recent_form") - b("recent_form")

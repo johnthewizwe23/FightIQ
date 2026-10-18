@@ -8,7 +8,7 @@ from datetime import datetime
 import numpy as np
 import pandas as pd
 
-from . import config, data, features
+from . import config, data, features, records
 from . import evaluate as ev
 from .model import FightModel
 
@@ -19,6 +19,12 @@ LABELS = {
     "slpm": "strikes landed/min", "exp_str_acc": "striking accuracy vs opponent's defence",
     "sapm": "strikes absorbed/min", "td_avg": "takedowns/15 min", "reach": "reach", "age": "age",
     "elo": "Elo (results vs quality of opposition)", "ctrl_avg": "control time", "experience": "UFC experience",
+    "glicko": "rating (results vs quality of opposition)", "glicko_rd": "rating uncertainty",
+    "adj_slpm": "strikes landed vs what opponents allow", "adj_sapm": "strikes absorbed vs opponents' usual output",
+    "adj_td": "takedowns vs what opponents allow", "adj_tdd": "takedowns conceded vs opponents' usual",
+    "adj_ctrl": "control vs what opponents allow", "adj_ctrld": "control conceded vs opponents' usual",
+    "adj_acc": "striking accuracy vs opponents' defence",
+    "pro_win_pct": "record outside the UFC", "pro_fights": "pro experience", "pro_years": "years as a pro",
     "layoff": "time since last fight", "age_old": "age past 33", "debut": "UFC debut",
     "win_pct": "UFC win %", "exp_td_acc": "takedown accuracy vs opponent's defence", "sub_avg": "sub attempts",
     "kd_avg": "knockdowns", "recent_form": "recent form",
@@ -78,6 +84,7 @@ def predict_card(card: pd.DataFrame, event_name: str = "", event_date: datetime 
     fighters = data.load_fighters()
     card = resolve_card(card, fights, fighters)
     date = pd.Timestamp(event_date or datetime.now()).normalize()
+    records.ensure(card, date)  # pro records outside the UFC for fighters new to the data (debutants)
 
     division = card.get("weight_class", pd.Series([""] * len(card))).map(data.parse_division)
     up = pd.DataFrame({

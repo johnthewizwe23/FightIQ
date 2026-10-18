@@ -126,10 +126,11 @@ def _write_report(path, X, P, P_classic, P_elo, final, blend_w) -> dict:
         lines.append(f"| {lo_o:.1f}–{hi_o:.1f} | {int(m.sum())} | {main_bets.loc[m, 'pnl'].mean():+.1%} |")
     lines += [
         "",
-        "**Caveats.** The historical odds come from a public dataset built from bestfightodds.com and it is not "
-        "documented whether they are opening, closing or best-available prices. If they are opening or "
-        "best-across-books prices, real-world ROI will be lower. Treat this as evidence worth testing live, "
-        "not as a guaranteed edge: log the odds you actually bet at and compare them with the closing line.",
+        "**Caveats.** The historical odds are closing prices: for each fighter the middle of the closing range across "
+        "bookmakers on bestfightodds.com (`odds_history/bestfightodds.csv`), then the odds FightIQ published when each "
+        "card locked, then a public dataset for anything missing. Bets are settled at that middle price; the best "
+        "price on the day is usually better, the price earlier in the week can be worse. Treat this as evidence worth "
+        "testing live, not as a guaranteed edge: the Record page compares every suggested bet with the closing line.",
         "",
         "## Final model",
         "",

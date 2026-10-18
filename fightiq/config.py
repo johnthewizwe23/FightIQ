@@ -21,5 +21,10 @@ GRECO_FILES = [
 # (https://github.com/shortlikeafox/ultimate_ufc_dataset).
 ODDS_URL = "https://raw.githubusercontent.com/shortlikeafox/ultimate_ufc_dataset/master/ufc-master.csv"
 ODDS_FILE = "ufc-master.csv"
+# Closing odds for every UFC bout since 2008 from bestfightodds.com (opening line and closing range across
+# bookmakers), matched to the fight data and kept in the repository
+ODDS_HISTORY = ROOT / "odds_history" / "bestfightodds.csv"
+# The public website's state: one JSON per published card (its odds at lock are also historical odds) + tracking
+SITE_DATA = ROOT / "site_data"
 
 UFCSTATS_UPCOMING = "http://ufcstats.com/statistics/events/upcoming"

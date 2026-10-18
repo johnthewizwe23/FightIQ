@@ -19,7 +19,7 @@ on:
     - cron: "30 6 1 * *"
   push:
     branches: [main]
-    paths: ["fightiq/**", "models/**", "reports/**", "requirements.txt", ".github/workflows/fightiq-site.yml"]
+    paths: ["fightiq/**", "models/**", "reports/**", "odds_history/**", "requirements.txt", ".github/workflows/fightiq-site.yml"]
   workflow_dispatch:
     inputs:
       retrain:
@@ -68,7 +68,7 @@ jobs:
         run: |
           git config user.name "fightiq-bot"
           git config user.email "fightiq-bot@users.noreply.github.com"
-          git add site site_data models reports
+          git add site site_data models reports records
           if git diff --cached --quiet; then
             echo "nothing changed"
           else

@@ -48,6 +48,18 @@ FEATURE_TEXT = {
     "reach": "Reach in inches (A − B)",
     "age": "Age in years on fight night (A − B)",
     "elo": "Elo rating ÷ 100 (A − B)",
+    "glicko": "Glicko ratings' log-odds that A wins",
+    "glicko_rd": "Glicko rating uncertainty ÷ 100 (A − B)",
+    "adj_slpm": "Strikes landed/min above what opponents usually allow, last year weighted most (A − B)",
+    "adj_sapm": "Strikes absorbed/min above opponents' usual output (A − B)",
+    "adj_td": "Takedowns/15 min above what opponents usually allow (A − B)",
+    "adj_tdd": "Takedowns conceded/15 min above opponents' usual (A − B)",
+    "adj_ctrl": "Control min/15 above what opponents usually allow (A − B)",
+    "adj_ctrld": "Control min/15 conceded above opponents' usual (A − B)",
+    "adj_acc": "Strike accuracy above opponents' usual defence (A − B)",
+    "pro_win_pct": "Win rate in pro fights outside the UFC, from Sherdog (A − B)",
+    "pro_fights": "ln(1 + all pro fights), A − B",
+    "pro_years": "Years since the first pro fight (A − B)",
     "ctrl_avg": "Control time, minutes per 15 (A − B)",
     "experience": "ln(1 + UFC fights), A − B",
     "layoff": "ln(1 + days since last fight), A − B",
@@ -119,7 +131,13 @@ def build_workbook(path=None, card: pd.DataFrame | None = None, event_name: str 
 
     cells = _model_sheet(ws_m, model, priors)
     fcols = _fighters_sheet(ws_f, profiles, last_event)
-    _predictor_sheet(ws_pred, model, cells, fcols, len(profiles), profiles, card, event_name, event_date)
+    scores = None
+    if card is not None and len(card):
+        from .predict import predict_card
+        picks, _ = predict_card(card.reset_index(drop=True), event_name, event_date)
+        p = picks["Model P(A)"].to_numpy(dtype=float)
+        scores = np.log(p / (1 - p))
+    _predictor_sheet(ws_pred, model, cells, fcols, len(profiles), profiles, card, event_name, event_date, scores)
     _tracking_sheet(ws_track, tracking_rows)
     summary = _backtest_sheet(ws_bt, P)
     _database_sheet(ws_db, X, P, model)
@@ -268,7 +286,7 @@ FIGHTER_COLS = [  # (header, profile column, number format)
     ("UFC minutes", "ufc_minutes", "0.0"), ("SLpM", "slpm", "0.00"), ("Str Acc", "str_acc", "0.0%"),
     ("SApM", "sapm", "0.00"), ("Str Def", "str_def", "0.0%"), ("TD Avg", "td_avg", "0.00"),
     ("TD Acc", "td_acc", "0.0%"), ("TD Def", "td_def", "0.0%"), ("Sub Avg", "sub_avg", "0.00"),
-    ("Ctrl min/15", "ctrl_avg", "0.00"), ("Elo", "elo", "0"), ("Date of birth", "dob", "yyyy-mm-dd"),
+    ("Ctrl min/15", "ctrl_avg", "0.00"), ("Glicko", "glicko", "0"), ("Elo", "elo", "0"), ("Date of birth", "dob", "yyyy-mm-dd"),
     ("Reach (in)", "reach", "0.0"), ("Last fight", "prev_date", "yyyy-mm-dd"),
 ]
 
@@ -359,112 +377,48 @@ def _model_sheet(ws, model: FightModel, priors: dict) -> dict[str, str]:
 
 # --------------------------------------------------------------------------- Predictor
 
-# Per-side helper columns: (key, header, formula template). {m}=position in the Fighters
-# list (0 when not found), {R:col}=that Fighters column's data range, {M:key}=Model cell.
-SIDE_HELPERS = [
-    ("slpm", "SLpM", "IF({m}>0,INDEX({R:slpm},{m}),{M:prior_slpm})"),
-    ("sapm", "SApM", "IF({m}>0,INDEX({R:sapm},{m}),{M:prior_slpm})"),
-    ("acc", "Str Acc", "IF({m}>0,INDEX({R:str_acc},{m}),{M:prior_acc})"),
-    ("def", "Str Def", "IF({m}>0,INDEX({R:str_def},{m}),1-{M:prior_acc})"),
-    ("td", "TD Avg", "IF({m}>0,INDEX({R:td_avg},{m}),{M:prior_td})"),
-    ("ctrl", "Ctrl/15", "IF({m}>0,INDEX({R:ctrl_avg},{m}),{M:prior_ctrl})"),
-    ("elo", "Elo", "IF({m}>0,INDEX({R:elo},{m}),{M:elo_start})"),
-    ("fights", "UFC fights", "IF({m}>0,INDEX({R:ufc_fights},{m}),0)"),
-    ("age", "Age", "IF({m}>0,IF(INDEX({R:dob},{m})=\"\",{M:default_age},"
-                   "($B$3-INDEX({R:dob},{m}))/365.25),{M:default_age})"),
-    ("reach", "Reach", "IF({m}>0,INDEX({R:reach},{m}),\"\")"),
-    ("layoff", "Days off", "IF({m}>0,MAX($B$3-INDEX({R:prev_date},{m}),0),{M:default_layoff})"),
-]
-
-FEATURE_FORMULAS = {
-    "slpm": "{A:slpm}-{B:slpm}",
-    "exp_str_acc": "SQRT({A:acc}*(1-{B:def}))-SQRT({B:acc}*(1-{A:def}))",
-    "sapm": "{A:sapm}-{B:sapm}",
-    "td_avg": "{A:td}-{B:td}",
-    "reach": "IF(OR({A:reach}=\"\",{B:reach}=\"\"),0,{A:reach}-{B:reach})",
-    "age": "{A:age}-{B:age}",
-    "elo": "({A:elo}-{B:elo})/100",
-    "ctrl_avg": "{A:ctrl}-{B:ctrl}",
-    "experience": "LN(1+{A:fights})-LN(1+{B:fights})",
-    "layoff": "LN(1+{A:layoff})-LN(1+{B:layoff})",
-    "age_old": "MAX({A:age}-33,0)-MAX({B:age}-33,0)",
-    "debut": "({A:fights}=0)-({B:fights}=0)",
-}
-
 OUTPUT_HEADERS = ["Fighter A", "Fighter B", "Odds A (decimal)", "Odds B (decimal)", "Model P(A)", "Market P(A)",
                   "FightIQ P(A)", "Pick", "Pick prob.", "Bet", "Bet odds", "EV", "Stake (% bankroll)", "Notes"]
 
 
-def _predictor_sheet(ws, model, cells, fcols, n_fighters, profiles, card=None, event_name="", event_date=None) -> None:
+def _predictor_sheet(ws, model, cells, fcols, n_fighters, profiles, card=None, event_name="", event_date=None,
+                     scores=None) -> None:
+    """The card with Python's model score per bout (a value); the market and blend columns are Excel formulas, so
+    typing in new odds updates the FightIQ probability, EV and stake. A new matchup needs a rerun of the command."""
     first, last = fcols["_first"], fcols["_last"]
     ws["A1"] = f"FightIQ Predictor - {event_name}" if event_name else "FightIQ Predictor"
     ws["A1"].font = _font(bold=True, size=14)
-    ws["A2"] = ("Type the fighters and decimal odds in the yellow cells (names must match the Fighters sheet; "
-                "use the dropdown). Everything else calculates. Leave a row blank to skip it.")
+    ws["A2"] = ("Type decimal odds in the yellow cells; the market, FightIQ probability, EV and stake recalculate. "
+                "The model's win chance comes from Python: to price a different bout, run "
+                "python3 -m fightiq workbook --card your_card.csv.")
     ws["A2"].font = _font(italic=True, color="595959")
     ws["A3"] = "Event date:"
     ws["A3"].font = _font(bold=True)
     ws["B3"] = pd.Timestamp(event_date).to_pydatetime() if event_date is not None else "=TODAY()"
     ws["B3"].number_format = "yyyy-mm-dd"
-    ws["B3"].fill = INPUT_FILL
     ws["B3"].font = _font(color=BLUE, bold=True)
-    ws["B3"].comment = Comment("Fight night. Used for age and days since last fight. Overwrite with the event date.", "FightIQ")
 
     hdr = 5
     _header(ws, hdr, OUTPUT_HEADERS)
-    # helper block to the right
     col = len(OUTPUT_HEADERS) + 2
     helper_start = col
     ref = {}
     ws.cell(hdr - 1, col, "Calculation columns (don't edit)").font = _font(bold=True, color="595959")
-    ref["mA"] = get_column_letter(col); col += 1
-    ref["mB"] = get_column_letter(col); col += 1
+    for key in ("mA", "mB", "fA", "fB"):
+        ref[key] = get_column_letter(col); col += 1
     k_cols = []  # Newton steps of the power method that removes the bookmaker margin (same steps as evaluate.devig)
     for _ in range(ev.DEVIG_STEPS):
         k_cols.append(get_column_letter(col)); col += 1
-    side_cols = {}
-    for side in ("A", "B"):
-        for key, _, _ in SIDE_HELPERS:
-            side_cols[(side, key)] = get_column_letter(col)
-            col += 1
-    feat_cols = {}
-    for f in model.features:
-        feat_cols[f] = get_column_letter(col)
-        col += 1
-    ref["score"] = get_column_letter(col); col += 1
-    ref["evA"] = get_column_letter(col); col += 1
-    ref["evB"] = get_column_letter(col); col += 1
+    for key in ("score", "evA", "evB"):
+        ref[key] = get_column_letter(col); col += 1
     helper_end = col - 1
-
-    labels = ["Row in Fighters (A)", "Row in Fighters (B)"] + [f"margin step {i + 1}" for i in range(ev.DEVIG_STEPS)]
-    labels += [f"{s}: {h}" for s in ("A", "B") for _, h, _ in SIDE_HELPERS]
-    labels += [f"feature: {f}" for f in model.features] + ["score", "EV backing A", "EV backing B"]
+    labels = (["Row in Fighters (A)", "Row in Fighters (B)", "UFC fights (A)", "UFC fights (B)"]
+              + [f"margin step {i + 1}" for i in range(ev.DEVIG_STEPS)] + ["model score", "EV backing A", "EV backing B"])
     _header(ws, hdr, labels, start_col=helper_start, fill=SUB_FILL, color="000000")
-    # coefficient row above the feature columns, linked to the Model sheet
-    ws.cell(hdr - 1, column_index_from_string(feat_cols[model.features[0]]) - 1,
-            "coefficients →").font = _font(italic=True, color="595959")
-    for f in model.features:
-        c = ws[f"{feat_cols[f]}{hdr - 1}"]
-        c.value = f"={cells['coef_' + f]}"
-        c.font = _font(color=GREEN)
-        c.number_format = "0.0000"
-    coef_range = f"${feat_cols[model.features[0]]}${hdr - 1}:${feat_cols[model.features[-1]]}${hdr - 1}"
 
-    def fill(template: str, r: int, side: str | None = None) -> str:
-        out = template
-        if side:
-            out = out.replace("{m}", f"${ref['m' + side]}{r}")
-        for key, letter in fcols.items():
-            if not key.startswith("_"):
-                out = out.replace("{R:" + key + "}", f"Fighters!${letter}${first}:${letter}${last}")
-        for key, addr in cells.items():
-            out = out.replace("{M:" + key + "}", addr)
-        for (s, key), letter in side_cols.items():
-            out = out.replace("{" + s + ":" + key + "}", f"{letter}{r}")
-        return out
-
-    th, mk = cells["threshold"], None
+    th = cells["threshold"]
     names_rng = f"Fighters!$A${first}:$A${last}"
+    fights_rng = f"Fighters!${fcols['ufc_fights']}${first}:${fcols['ufc_fights']}${last}"
     for r in range(hdr + 1, hdr + 1 + PREDICTOR_ROWS):
         for j in range(1, 5):
             c = ws.cell(r, j)
@@ -474,51 +428,50 @@ def _predictor_sheet(ws, model, cells, fcols, n_fighters, profiles, card=None, e
                 c.number_format = "0.00"
         ws[f"{ref['mA']}{r}"] = f'=IFERROR(MATCH(TRIM(A{r}),{names_rng},0),0)'
         ws[f"{ref['mB']}{r}"] = f'=IFERROR(MATCH(TRIM(B{r}),{names_rng},0),0)'
-        for side in ("A", "B"):
-            for key, _, tmpl in SIDE_HELPERS:
-                ws[f"{side_cols[(side, key)]}{r}"] = "=" + fill(tmpl, r, side)
-        for f in model.features:
-            ws[f"{feat_cols[f]}{r}"] = "=" + fill(FEATURE_FORMULAS[f], r)
-        first_f, last_f = feat_cols[model.features[0]], feat_cols[model.features[-1]]
-        ws[f"{ref['score']}{r}"] = f"=SUMPRODUCT({first_f}{r}:{last_f}{r},{coef_range})"
-        blank = f'OR(A{r}="",B{r}="")'
+        ws[f"{ref['fA']}{r}"] = f'=IF(${ref["mA"]}{r}>0,INDEX({fights_rng},${ref["mA"]}{r}),0)'
+        ws[f"{ref['fB']}{r}"] = f'=IF(${ref["mB"]}{r}>0,INDEX({fights_rng},${ref["mB"]}{r}),0)'
+        sc = f"{ref['score']}{r}"
+        blank = f'OR(A{r}="",B{r}="",{sc}="")'
         has_odds = f"AND(ISNUMBER(C{r}),ISNUMBER(D{r}),C{r}>1,D{r}>1)"
-        ws[f"E{r}"] = f'=IF({blank},"",1/(1+EXP(-{ref["score"]}{r})))'
+        ws[f"E{r}"] = f'=IF({blank},"",1/(1+EXP(-{sc})))'
         prev = "1"
         for kc in k_cols:
             ws[f"{kc}{r}"] = (f'=IF(NOT({has_odds}),"",{prev}-((1/C{r})^{prev}+(1/D{r})^{prev}-1)'
                               f'/((1/C{r})^{prev}*LN(1/C{r})+(1/D{r})^{prev}*LN(1/D{r})))')
             prev = f"{kc}{r}"
-        ws[f"F{r}"] = f'=IF(OR({blank},NOT({has_odds})),"",(1/C{r})^{prev})'
+        ws[f"F{r}"] = f'=IF(OR(A{r}="",B{r}="",NOT({has_odds})),"",(1/C{r})^{prev})'
         ws[f"G{r}"] = (f'=IF({blank},"",IF(F{r}="",E{r},1/(1+EXP(-({cells["blend_market"]}*LN(F{r}/(1-F{r}))'
-                       f'+{cells["blend_model"]}*{ref["score"]}{r})))))')
+                       f'+{cells["blend_model"]}*{sc})))))')
         ws[f"H{r}"] = f'=IF({blank},"",IF(G{r}>=0.5,A{r},B{r}))'
         ws[f"I{r}"] = f'=IF({blank},"",MAX(G{r},1-G{r}))'
-        ws[f"{ref['evA']}{r}"] = f'=IF(F{r}="","",G{r}*C{r}-1)'
-        ws[f"{ref['evB']}{r}"] = f'=IF(F{r}="","",(1-G{r})*D{r}-1)'
+        ws[f"{ref['evA']}{r}"] = f'=IF(OR({blank},F{r}=""),"",G{r}*C{r}-1)'
+        ws[f"{ref['evB']}{r}"] = f'=IF(OR({blank},F{r}=""),"",(1-G{r})*D{r}-1)'
         evA, evB = f"{ref['evA']}{r}", f"{ref['evB']}{r}"
-        fa, fb = f"{side_cols[('A', 'fights')]}{r}", f"{side_cols[('B', 'fights')]}{r}"
-        ws[f"L{r}"] = f'=IF(F{r}="","",MAX({evA},{evB}))'
+        fa, fb = f"{ref['fA']}{r}", f"{ref['fB']}{r}"
+        ws[f"L{r}"] = f'=IF({evA}="","",MAX({evA},{evB}))'
         ws[f"J{r}"] = f'=IF(L{r}="","",IF(AND(L{r}>{th},{fa}>0,{fb}>0),IF({evA}>={evB},A{r},B{r}),""))'
         ws[f"K{r}"] = f'=IF(J{r}="","",IF({evA}>={evB},C{r},D{r}))'
         p_side = f"IF({evA}>={evB},G{r},1-G{r})"
         ws[f"M{r}"] = (f'=IF(J{r}="","",MIN({cells["kelly"]}*({p_side}*K{r}-1)/(K{r}-1),{cells["max_stake"]}))')
-        ws[f"N{r}"] = (f'=IF({blank},"",TRIM(IF(${ref["mA"]}{r}=0,A{r}&" not in Fighters (debut?). ","")'
+        ws[f"N{r}"] = (f'=IF(OR(A{r}="",B{r}=""),"",IF({sc}="","No model score: run python3 -m fightiq workbook '
+                       f'--card with this bout.",TRIM(IF(${ref["mA"]}{r}=0,A{r}&" not in Fighters (debut?). ","")'
                        f'&IF(${ref["mB"]}{r}=0,B{r}&" not in Fighters (debut?). ","")'
-                       f'&IF(AND(L{r}<>"",L{r}>{th},OR({fa}=0,{fb}=0)),"No bet on debut bouts.","")))')
+                       f'&IF(AND(L{r}<>"",L{r}>{th},OR({fa}=0,{fb}=0)),"No bet on debut bouts.",""))))')
         for col_letter, fmt in (("E", "0.0%"), ("F", "0.0%"), ("G", "0.0%"), ("I", "0.0%"), ("K", "0.00"),
                                 ("L", "0.0%"), ("M", "0.0%")):
             ws[f"{col_letter}{r}"].number_format = fmt
         for j in range(helper_start, helper_end + 1):
             ws.cell(r, j).fill = HELPER_FILL
             ws.cell(r, j).number_format = "0.000"
-        for c in (ref["mA"], ref["mB"]):
+        for c in (ref["mA"], ref["mB"], ref["fA"], ref["fB"]):
             ws[f"{c}{r}"].number_format = "0"
 
     if card is not None:
         for i, row in card.head(PREDICTOR_ROWS).iterrows():
             r = hdr + 1 + i
             ws[f"A{r}"], ws[f"B{r}"] = row["fighter_a"], row["fighter_b"]
+            if scores is not None and i < len(scores) and scores[i] == scores[i]:
+                ws[f"{ref['score']}{r}"] = float(scores[i])
             for col, key in (("C", "odds_a"), ("D", "odds_b")):
                 v = row.get(key)
                 if v is not None and v == v:
@@ -526,26 +479,10 @@ def _predictor_sheet(ws, model, cells, fcols, n_fighters, profiles, card=None, e
             source = row.get("odds_source")
             if isinstance(source, str) and source:
                 ws[f"C{r}"].comment = Comment(f"Best price found: {source}", "FightIQ")
-        pair = []
-    else:
-        # example bout: two experienced fighters from the data
-        examples = profiles.sort_values("ufc_fights", ascending=False)
-        recent = examples[examples["prev_date"] >= examples["prev_date"].max() - pd.Timedelta(days=200)]
-        pair = recent.head(2)["name"].tolist()
-    if len(pair) == 2:
-        ws[f"A{hdr + 1}"], ws[f"B{hdr + 1}"] = pair
-        ws[f"A{hdr + 1}"].comment = Comment("Example row (not a scheduled bout) - overwrite it with a real one and "
-                                            "add decimal odds in columns C and D, e.g. 1.80 and 2.05.", "FightIQ")
-
-    dv = DataValidation(type="list", formula1=f"={names_rng}", allow_blank=True, showErrorMessage=True,
-                        errorStyle="warning", errorTitle="Fighter not found",
-                        error="Not in the Fighters sheet. A UFC debutant gets league-average stats and no bet.")
-    ws.add_data_validation(dv)
-    dv.add(f"A{hdr + 1}:B{hdr + PREDICTOR_ROWS}")
 
     r = hdr + PREDICTOR_ROWS + 2
     notes = [
-        "Legend: yellow cells with blue text are inputs. Odds are decimal (e.g. 1.80). For American odds: "
+        "Legend: yellow cells with blue text are inputs (odds). Odds are decimal (e.g. 1.80). For American odds: "
         "+150 → 2.50, −200 → 1.50.",
         "Model P(A): stats-only model. Market P(A): bookmaker odds with the margin removed. "
         "FightIQ P(A): the blend of both (use this one when you have odds).",

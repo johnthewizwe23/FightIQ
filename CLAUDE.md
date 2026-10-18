@@ -32,7 +32,10 @@ from the command output or by reading the PDF/workbook. Other commands:
 - Never commit `output/`, `data/` or `.odds_api_key` (all git-ignored). The odds key is the user's private
   The Odds API key.
 - Odds come from The Odds API (region `au`, best price across bookmakers). Bouts it doesn't list stay blank
-  for the user to type in.
+  for the user to type in. Historical odds for training: `odds_history/bestfightodds.csv` (closing ranges), then
+  each locked card's published odds, then the public ufc-master dataset.
+- The Excel Predictor no longer recomputes the model: Python writes each bout's model score; Excel still
+  recalculates the market, blend, EV and stake when odds are typed in.
 - ufcstats.com shows scripts a JavaScript "checking your browser" page; `fightiq/card.py` falls back to
   driving Google Chrome with Playwright. If that fails, use the saved-page route above.
 - Don't change the model or bet rules (5% EV threshold, quarter Kelly capped at 2%, no bets on UFC debuts)
@@ -47,7 +50,8 @@ The next card is only published (and shown) a day after the current card finishe
 
 ## Layout
 
-`data.py` (download/clean ufcstats data) · `features.py` (point-in-time stats, Elo) · `model.py`
+`data.py` (download/clean ufcstats data, historical odds) · `features.py` (point-in-time stats, opponent-adjusted
+stats) · `ratings.py` (Glicko) · `records.py` (Sherdog pro records outside the UFC, `records/`) · `model.py`
 (symmetric logistic regression) · `evaluate.py` (walk-forward backtest, market blend) · `card.py`
 (ufcstats scraper) · `odds.py` (The Odds API) · `predict.py` · `tracking.py` · `workbook.py` (Excel) ·
 `report.py` (PDF) · `site.py` (website) · `history.py` (walk-forward pick for every past fight, the site's
