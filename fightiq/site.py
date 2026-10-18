@@ -25,7 +25,7 @@ from . import odds as odds_mod
 from . import report as report_mod
 from . import tracking as tr
 
-STATE = config.ROOT / "site_data"
+STATE = config.SITE_DATA
 SITE = config.ROOT / "site"
 REPO_URL = "https://github.com/johnthewizwe23/FightIQ"
 HISTORY_FILE = "fight_history.json"
@@ -62,6 +62,15 @@ FEATURE_TEXT = {
     "reach": ("Reach", True),
     "age": ("Age on fight night", False),
     "elo": ("Elo rating: results weighted by quality of opposition", True),
+    "glicko": ("Glicko rating: results weighted by quality of opposition (finishes count fully, split decisions half)", True),
+    "glicko_rd": ("How unsure the rating is (grows with time out)", False),
+    "adj_slpm": ("Strikes landed compared with what each opponent usually allows (last year weighted most)", True),
+    "adj_sapm": ("Strikes absorbed compared with each opponent's usual output", False),
+    "adj_td": ("Takedowns compared with what each opponent usually allows", True),
+    "adj_tdd": ("Takedowns conceded compared with each opponent's usual", False),
+    "adj_ctrl": ("Control time compared with what each opponent usually allows", True),
+    "adj_ctrld": ("Control time conceded compared with each opponent's usual", False),
+    "adj_acc": ("Strike accuracy compared with each opponent's usual defence", True),
     "ctrl_avg": ("Control time per 15 minutes", False),
     "experience": ("Number of UFC fights", False),
     "layoff": ("Time since last fight", False),

@@ -15,7 +15,7 @@ def synthetic_history(seed=0):
         n = 400 if year >= 2015 else 60
         for i in range(n):
             f = {"f_" + c: rng.normal() for c in features.FEATURES_FULL}
-            p = 1 / (1 + np.exp(-(0.8 * f["f_elo"] + 0.4 * f["f_slpm"])))
+            p = 1 / (1 + np.exp(-(0.8 * f["f_glicko"] + 0.4 * f["f_slpm"])))
             result = float(rng.random() < p)
             if i == 0:
                 result = 0.5

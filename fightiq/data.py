@@ -230,20 +230,61 @@ def _load_round_totals(raw, fights: pd.DataFrame) -> pd.DataFrame:
 BOOK_RANGE = (1.0, 1.15)
 
 
-def load_odds() -> pd.DataFrame:
-    """Historical closing-ish odds as decimal prices, keyed by date and normalised names."""
-    m = pd.read_csv(config.RAW_DIR / config.ODDS_FILE)
+def _decimal(american):
+    a = pd.to_numeric(american, errors="coerce")
+    return np.where(a > 0, 1 + a / 100, np.where(a < 0, 1 + 100 / a.abs(), np.nan))
 
-    def to_decimal(american):
-        a = pd.to_numeric(american, errors="coerce")
-        return np.where(a > 0, 1 + a / 100, 1 + 100 / a.abs())
 
-    out = pd.DataFrame({
-        "date": pd.to_datetime(m["date"]),
-        "key_r": m["R_fighter"].map(norm_name),
-        "key_b": m["B_fighter"].map(norm_name),
-        "odds_r": to_decimal(m["R_odds"]),
-        "odds_b": to_decimal(m["B_odds"]),
-    }).dropna()
+def _bfo_odds() -> pd.DataFrame:
+    """Closing odds from bestfightodds.com: each side's price is the middle of its closing range across bookmakers."""
+    if not config.ODDS_HISTORY.exists():
+        return pd.DataFrame()
+    b = pd.read_csv(config.ODDS_HISTORY)
+    mid = lambda lo, hi: 2 / (1 / _decimal(b[lo]) + 1 / _decimal(b[hi]))
+    return pd.DataFrame({"date": pd.to_datetime(b["date"]), "key_r": b["fighter_a"].map(norm_name),
+                         "key_b": b["fighter_b"].map(norm_name), "odds_r": mid("close_lo_a", "close_hi_a"),
+                         "odds_b": mid("close_lo_b", "close_hi_b")}).dropna()
+
+
+def _published_odds() -> pd.DataFrame:
+    """The odds FightIQ published when each card locked (best price across bookmakers), for fights after the file."""
+    import json
+    rows = []
+    now = pd.Timestamp.now(tz="UTC")
+    for path in sorted((config.SITE_DATA / "weeks").glob("*.json")):
+        w = json.loads(path.read_text())
+        if pd.Timestamp(w["locks_at"]) > now:
+            continue
+        for b in w["bouts"]:
+            if b.get("odds") and b.get("opp_odds"):
+                rows.append({"date": pd.Timestamp(w["date"]), "key_r": norm_name(b["pick"]),
+                             "key_b": norm_name(b["opponent"]), "odds_r": b["odds"], "odds_b": b["opp_odds"]})
+    return pd.DataFrame(rows)
+
+
+def _ufc_master_odds() -> pd.DataFrame:
+    path = config.RAW_DIR / config.ODDS_FILE
+    if not path.exists():
+        return pd.DataFrame()
+    m = pd.read_csv(path)
+    out = pd.DataFrame({"date": pd.to_datetime(m["date"]), "key_r": m["R_fighter"].map(norm_name),
+                        "key_b": m["B_fighter"].map(norm_name), "odds_r": _decimal(m["R_odds"]),
+                        "odds_b": _decimal(m["B_odds"])}).dropna()
     book = 1 / out["odds_r"] + 1 / out["odds_b"]
-    return out[(book >= BOOK_RANGE[0]) & (book <= BOOK_RANGE[1])].reset_index(drop=True)
+    return out[(book >= BOOK_RANGE[0]) & (book <= BOOK_RANGE[1])]
+
+
+def load_odds() -> pd.DataFrame:
+    """Historical closing odds as decimal prices, keyed by date and normalised names.
+
+    bestfightodds.com closing ranges first (2008 on), then the odds FightIQ itself published at lock (fights after
+    that file), then the public ufc-master dataset for anything else. One row per bout: the first source wins.
+    """
+    parts = [d for d in (_bfo_odds(), _published_odds(), _ufc_master_odds()) if len(d)]
+    if not parts:
+        return pd.DataFrame(columns=["date", "key_r", "key_b", "odds_r", "odds_b"])
+    out = pd.concat(parts, ignore_index=True)
+    out = out[(out["odds_r"] > 1) & (out["odds_b"] > 1)]
+    pair = out["date"].dt.strftime("%Y-%m-%d") + "|" + np.minimum(out["key_r"], out["key_b"]) + "|" + np.maximum(
+        out["key_r"], out["key_b"])
+    return out[~pair.duplicated()].reset_index(drop=True)

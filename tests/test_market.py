@@ -28,9 +28,35 @@ def test_load_odds_drops_garbled_prices(tmp_path, monkeypatch):
                   "B_fighter": ["X One", "Y Two", "Z Three"],
                   "R_odds": [-150, 260, 140], "B_odds": [130, 360, -900]}).to_csv(tmp_path / config.ODDS_FILE, index=False)
     monkeypatch.setattr(config, "RAW_DIR", tmp_path)
+    monkeypatch.setattr(config, "ODDS_HISTORY", tmp_path / "none.csv")
+    monkeypatch.setattr(config, "SITE_DATA", tmp_path / "none")
     odds = data.load_odds()
     # -150/+130 is a normal ~104% book; +260/+360 implies 49%, +140/-900 implies 132%: both impossible for one bookmaker
     assert list(odds["key_r"]) == ["a one"]
+
+
+def test_load_odds_prefers_closing_ranges_then_published_cards(tmp_path, monkeypatch):
+    import json
+    pd.DataFrame({"date": ["2024-01-01", "2024-02-01"], "R_fighter": ["A One", "B Two"], "B_fighter": ["X One", "Y Two"],
+                  "R_odds": [-150, 120], "B_odds": [130, -140]}).to_csv(tmp_path / config.ODDS_FILE, index=False)
+    pd.DataFrame({"date": ["2024-01-01"], "fighter_a": ["X One"], "fighter_b": ["A One"], "open_a": [100], "open_b": [-120],
+                  "close_lo_a": [110], "close_hi_a": [130], "close_lo_b": [-160], "close_hi_b": [-140]}
+                 ).to_csv(tmp_path / "bfo.csv", index=False)
+    (tmp_path / "site" / "weeks").mkdir(parents=True)
+    week = {"date": "2026-10-17", "locks_at": "2026-10-17T21:10:00+00:00", "bouts": [
+        {"pick": "C Three", "opponent": "Z Three", "odds": 1.8, "opp_odds": 2.1},
+        {"pick": "D Four", "opponent": "W Four", "odds": None, "opp_odds": None}]}
+    (tmp_path / "site" / "weeks" / "2026-10-17_x.json").write_text(json.dumps(week))
+    (tmp_path / "site" / "weeks" / "2099-01-01_y.json").write_text(json.dumps(dict(week, date="2099-01-01",
+                                                                                    locks_at="2099-01-01T00:00:00+00:00")))
+    monkeypatch.setattr(config, "RAW_DIR", tmp_path)
+    monkeypatch.setattr(config, "ODDS_HISTORY", tmp_path / "bfo.csv")
+    monkeypatch.setattr(config, "SITE_DATA", tmp_path / "site")
+    odds = data.load_odds()
+    assert len(odds) == 3  # one row per bout: the closing range replaced the A One/X One row from the public file
+    bfo = odds[odds["key_r"] == "x one"].iloc[0]
+    assert np.isclose(1 / bfo["odds_r"], (1 / 2.10 + 1 / 2.30) / 2)  # middle of the closing range, in probability
+    assert set(odds["key_r"]) == {"x one", "b two", "c three"}  # the card that hasn't locked adds nothing
 
 
 def test_odds_of_one_or_less_count_as_missing():
