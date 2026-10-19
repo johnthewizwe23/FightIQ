@@ -257,7 +257,7 @@ def test_fight_table_opens_by_confidence_and_can_switch_to_card_order(tmp_path):
     assert 'class="slot"' not in (out / "index.html").read_text()
 
 
-def test_next_card_stays_hidden_until_a_day_after_the_current_card_finishes(tmp_path):
+def test_next_card_stays_hidden_until_the_current_card_has_finished(tmp_path):
     """Oct 2026: next week's card took over the home page an hour into this week's card."""
     from datetime import datetime, timezone
     state, out = tmp_path / "state", tmp_path / "site"
@@ -281,10 +281,21 @@ def test_next_card_stays_hidden_until_a_day_after_the_current_card_finishes(tmp_
     assert not (out / "data" / "weeks" / f"{nxt}_UFC-Next-Night.json").exists()
     assert nxt not in (out / "data" / "tracking.csv").read_text()
     assert len(site.read_tracking(state / "tracking.csv")) == 2  # the record itself is untouched
-    # a day after the card finished (8 hours after its first bout), the next card goes up
+    # once the card has finished (8 hours after its first bout), the next card goes up within a day
     opens = site.next_card_from(started.isoformat(), week["locks_at"])
-    assert opens == pd.Timestamp(started) + pd.Timedelta(hours=32)
+    assert pd.Timestamp(started) + pd.Timedelta(hours=8) < opens <= pd.Timestamp(started) + pd.Timedelta(hours=32)
     assert [w["event"] for w in site.shown_weeks(site.load_weeks(state), opens)] == ["UFC Test Night", "UFC Next Night"]
+
+
+def test_next_card_goes_up_on_monday_morning_brisbane_time():
+    """Oct 2026: the owner expected next week's card on Monday morning (Brisbane) and it came that evening."""
+    def opens(lock, next_start="2026-12-31T00:00:00+00:00"):
+        return site.next_card_from(lock, next_start).tz_convert("Australia/Brisbane").strftime("%a %d %b %H:%M")
+    assert opens("2026-10-17T21:10:00+00:00") == "Mon 19 Oct 06:00"  # Saturday night in North America
+    assert opens("2026-10-24T14:00:00+00:00") == "Mon 26 Oct 06:00"  # Saturday evening in Abu Dhabi
+    assert opens("2026-01-31T23:00:00+00:00") == "Mon 02 Feb 06:00"  # Sunday morning in Sydney
+    assert opens("2026-11-21T05:00:00+00:00") == "Sun 22 Nov 23:00"  # Asia: a day after it ends is sooner
+    assert opens("2026-10-18T22:00:00+00:00") == "Tue 20 Oct 16:00"  # a Sunday card ends after Monday morning
     # back-to-back events: never later than a day before the next card's first bout
     assert site.next_card_from("2026-10-17T21:00:00+00:00", "2026-10-18T21:00:00+00:00") == pd.Timestamp(
         "2026-10-17T21:00:00+00:00")
@@ -301,11 +312,11 @@ def test_publishing_holds_the_next_card_and_fight_day_refreshes_the_current_one(
     predict = lambda card, name, when: (pd.DataFrame({"Fighter A": card["fighter_a"]}), None)
     card = pd.DataFrame({"fighter_a": ["Alexander Volkanovski"], "fighter_b": ["Movsar Evloev"]})
     day, start = pd.Timestamp("2026-10-24"), pd.Timestamp("2026-10-24T12:00:00Z")
-    held = site._publish(card, "UFC 333", day, start, "ufcstats.com", state, out,
-                         pd.Timestamp("2026-10-17T21:44:00Z"), [], predict)
-    assert held is None and len(site.load_weeks(state)) == 1
+    for now in ("2026-10-17T21:44:00Z", "2026-10-18T19:59:00Z"):  # during the card, and up to Monday 6am Brisbane
+        held = site._publish(card, "UFC 333", day, start, "ufcstats.com", state, out, pd.Timestamp(now), [], predict)
+        assert held is None and len(site.load_weeks(state)) == 1
     up = site._publish(card, "UFC 333", day, start, "ufcstats.com", state, out,
-                       pd.Timestamp("2026-10-19T05:11:00Z"), [], predict)
+                       pd.Timestamp("2026-10-18T20:00:00Z"), [], predict)
     assert up["event"] == "UFC 333" and len(site.load_weeks(state)) == 2
     # on fight day, before this week's card locks, a later card from ufcstats.com is not the one to refresh
     assert site._pending_card(state, "2026-10-24", pd.Timestamp("2026-10-17T18:00:00Z"))["slug"] == "2026-10-17_UFC-Test"

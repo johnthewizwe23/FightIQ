@@ -32,17 +32,29 @@ HISTORY_FILE = "fight_history.json"
 # a card's lock only moves later (the first bout was rescheduled, or a wrong one dropped) if it changes this long before
 # the lock already published; nearer the time, one run's feed missing the first bout must not reopen the picks
 LOCK_FREEZE = pd.Timedelta(hours=12)
-# A card runs about 8 hours from its first bout to the end of the main event. The next card goes up a day after that,
-# so the weekend's card stays on the home page while it is fought and its results come in.
+# A card runs about 8 hours from its first bout to the end of the main event. The next card goes up at 6am on the
+# Monday after (Brisbane time, the owner's; Sunday 20:00 UTC), so the weekend's card stays on the home page while it is
+# fought and its results come in. A card that finishes later in the week (rare) is followed a day after it finishes.
 CARD_HOURS = pd.Timedelta(hours=8)
 NEXT_CARD_GAP = pd.Timedelta(hours=24)
+NEXT_CARD_TZ, NEXT_CARD_HOUR = "Australia/Brisbane", 6
+
+
+def _utc(t) -> pd.Timestamp:
+    t = pd.Timestamp(t)
+    return t.tz_convert("UTC") if t.tzinfo else t.tz_localize("UTC")
 
 
 def next_card_from(previous_lock, next_start=None) -> pd.Timestamp:
-    """When the card after one that locked at `previous_lock` may go up: a day after that card has finished, and at the
-    latest a day before the next card starts (for back-to-back events)."""
-    opens = pd.Timestamp(previous_lock) + CARD_HOURS + NEXT_CARD_GAP
-    return min(opens, pd.Timestamp(next_start) - NEXT_CARD_GAP) if next_start is not None else opens
+    """When the card after one that locked at `previous_lock` may go up: 6am Monday Brisbane time after that card has
+    finished, or a day after it finished if that is sooner, and at the latest a day before the next card starts."""
+    done = _utc(previous_lock) + CARD_HOURS
+    local = done.tz_convert(NEXT_CARD_TZ)
+    monday = local.normalize() + pd.Timedelta(days=-local.weekday() % 7, hours=NEXT_CARD_HOUR)
+    if monday < local:
+        monday += pd.Timedelta(days=7)
+    opens = min(_utc(monday), done + NEXT_CARD_GAP)
+    return min(opens, _utc(next_start) - NEXT_CARD_GAP) if next_start is not None else opens
 
 
 def shown_weeks(weeks: list[dict], now) -> list[dict]:
@@ -383,8 +395,8 @@ def _publish(card, name, day, start, source, state, site, now, rows, predict_car
         first_bout = start.tz_convert("UTC") if start is not None else (existing["locks_at"] if existing else None)
         opens = next_card_from(before[-1]["locks_at"], first_bout)
         if now < opens:
-            print(f"{name}: held until {opens:%Y-%m-%d %H:%M} UTC - {before[-1]['event']} stays up until a day after "
-                  "it finishes")
+            print(f"{name}: held until {opens:%Y-%m-%d %H:%M} UTC - {before[-1]['event']} stays up until the Monday "
+                  "morning after it")
             return None
     if existing and source != "ufcstats.com":
         name = existing["event"]  # keep the official name once we have it
