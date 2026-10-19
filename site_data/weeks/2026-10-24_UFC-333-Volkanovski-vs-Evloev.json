@@ -4,23 +4,23 @@
   "slug": "2026-10-24_UFC-333-Volkanovski-vs-Evloev",
   "source": "ufcstats.com",
   "published_at": "2026-10-17T21:44:23+00:00",
-  "updated_at": "2026-10-19T09:49:50+00:00",
+  "updated_at": "2026-10-19T14:46:27+00:00",
   "locks_at": "2026-10-24T14:00:00+00:00",
   "bouts": [
     {
       "pick": "Movsar Evloev",
       "opponent": "Alexander Volkanovski",
-      "p": 0.5549,
+      "p": 0.5527,
       "p_model": 0.646,
-      "p_market": 0.5089,
+      "p_market": 0.5064,
       "odds": 1.95,
-      "opp_odds": 2.02,
+      "opp_odds": 2.0,
       "debut": false,
       "debut_names": [],
       "bet": "Movsar Evloev",
       "bet_odds": 1.95,
-      "bet_p": 0.5549,
-      "edge": 0.0821,
+      "bet_p": 0.5527,
+      "edge": 0.0778,
       "stake": 2.0,
       "first_odds": {
         "Movsar Evloev": 1.96,
@@ -41,18 +41,18 @@
     {
       "pick": "Petr Yan",
       "opponent": "Merab Dvalishvili",
-      "p": 0.5647,
+      "p": 0.5593,
       "p_model": 0.4104,
-      "p_market": 0.6033,
-      "odds": 1.65,
+      "p_market": 0.5974,
+      "odds": 1.68,
       "opp_odds": 2.5,
       "debut": false,
       "debut_names": [],
       "bet": "Merab Dvalishvili",
       "bet_odds": 2.5,
-      "bet_p": 0.4353,
-      "edge": 0.0881,
-      "stake": 1.47,
+      "bet_p": 0.4407,
+      "edge": 0.1016,
+      "stake": 1.69,
       "first_odds": {
         "Petr Yan": 1.62,
         "Merab Dvalishvili": 2.48
@@ -72,10 +72,10 @@
     {
       "pick": "Ramazan Temirov",
       "opponent": "Lone'er Kavanagh",
-      "p": 0.5067,
+      "p": 0.5044,
       "p_model": 0.5065,
-      "p_market": 0.5053,
-      "odds": 1.94,
+      "p_market": 0.5026,
+      "odds": 1.96,
       "opp_odds": 1.98,
       "debut": false,
       "debut_names": [],
@@ -93,17 +93,17 @@
     {
       "pick": "Alexander Volkov",
       "opponent": "Rizvan Kuniev",
-      "p": 0.5779,
+      "p": 0.5867,
       "p_model": 0.6925,
-      "p_market": 0.5166,
-      "odds": 1.92,
+      "p_market": 0.5267,
+      "odds": 1.85,
       "opp_odds": 2.05,
       "debut": false,
       "debut_names": [],
       "bet": "Alexander Volkov",
-      "bet_odds": 1.92,
-      "bet_p": 0.5779,
-      "edge": 0.1095,
+      "bet_odds": 1.85,
+      "bet_p": 0.5867,
+      "edge": 0.0854,
       "stake": 2.0,
       "first_odds": {
         "Alexander Volkov": 1.87,
@@ -124,10 +124,10 @@
     {
       "pick": "Aaron Pico",
       "opponent": "Losene Keita",
-      "p": 0.5046,
+      "p": 0.502,
       "p_model": 0.4752,
-      "p_market": 0.5139,
-      "odds": 1.87,
+      "p_market": 0.5109,
+      "odds": 1.89,
       "opp_odds": 1.97,
       "debut": false,
       "debut_names": [],
@@ -145,18 +145,18 @@
     {
       "pick": "Azamat Murzakanov",
       "opponent": "Dominick Reyes",
-      "p": 0.6229,
+      "p": 0.6239,
       "p_model": 0.4148,
-      "p_market": 0.6645,
+      "p_market": 0.6656,
       "odds": 1.47,
-      "opp_odds": 2.8,
+      "opp_odds": 2.82,
       "debut": false,
       "debut_names": [],
       "bet": "Dominick Reyes",
-      "bet_odds": 2.8,
-      "bet_p": 0.3771,
-      "edge": 0.0559,
-      "stake": 0.78,
+      "bet_odds": 2.82,
+      "bet_p": 0.3761,
+      "edge": 0.0606,
+      "stake": 0.83,
       "first_odds": {
         "Azamat Murzakanov": 1.42,
         "Dominick Reyes": 2.9
@@ -176,11 +176,11 @@
     {
       "pick": "Abdul Rakhman Yakhyaev",
       "opponent": "Nikita Krylov",
-      "p": 0.8336,
+      "p": 0.8395,
       "p_model": 0.7493,
-      "p_market": 0.8054,
+      "p_market": 0.8129,
       "odds": 1.22,
-      "opp_odds": 4.5,
+      "opp_odds": 5.0,
       "debut": false,
       "debut_names": [],
       "bet": null,
@@ -197,11 +197,11 @@
     {
       "pick": "Abus Magomedov",
       "opponent": "Cam Rowston",
-      "p": 0.5103,
+      "p": 0.5083,
       "p_model": 0.4471,
-      "p_market": 0.5302,
+      "p_market": 0.5279,
       "odds": 1.85,
-      "opp_odds": 2.08,
+      "opp_odds": 2.06,
       "debut": false,
       "debut_names": [],
       "bet": null,
@@ -218,11 +218,11 @@
     {
       "pick": "Grant Dawson",
       "opponent": "Nurullo Aliev",
-      "p": 0.5425,
+      "p": 0.5385,
       "p_model": 0.539,
-      "p_market": 0.5339,
+      "p_market": 0.5294,
       "odds": 1.84,
-      "opp_odds": 2.1,
+      "opp_odds": 2.06,
       "debut": false,
       "debut_names": [],
       "bet": null,
@@ -259,17 +259,17 @@
     {
       "pick": "Abubakar Vagaev",
       "opponent": "Jacob Malkoun",
-      "p": 0.5547,
+      "p": 0.5528,
       "p_model": 0.3052,
-      "p_market": 0.6308,
+      "p_market": 0.6288,
       "odds": 1.55,
-      "opp_odds": 2.58,
+      "opp_odds": 2.55,
       "debut": false,
       "debut_names": [],
       "bet": "Jacob Malkoun",
-      "bet_odds": 2.58,
-      "bet_p": 0.4453,
-      "edge": 0.1488,
+      "bet_odds": 2.55,
+      "bet_p": 0.4472,
+      "edge": 0.1403,
       "stake": 2.0,
       "first_odds": {
         "Abubakar Vagaev": 1.55,
@@ -285,6 +285,89 @@
         "odds": 2.58,
         "at": "2026-10-19T08:29:29+00:00",
         "side": "Jacob Malkoun"
+      }
+    },
+    {
+      "pick": "Daniel Santos",
+      "opponent": "Bolaji Oki",
+      "p": 0.5546,
+      "p_model": 0.5174,
+      "p_market": 0.5551,
+      "odds": 1.75,
+      "opp_odds": 2.16,
+      "debut": false,
+      "debut_names": [],
+      "bet": null,
+      "bet_odds": null,
+      "bet_p": null,
+      "edge": null,
+      "stake": null,
+      "first_odds": {
+        "Daniel Santos": 1.75,
+        "Bolaji Oki": 2.16
+      },
+      "suggested": {}
+    },
+    {
+      "pick": "Kody Steele",
+      "opponent": "Noah Gugnon",
+      "p": 0.512,
+      "p_model": 0.3049,
+      "p_market": 0.5851,
+      "odds": 1.67,
+      "opp_odds": 2.32,
+      "debut": false,
+      "debut_names": [],
+      "bet": "Noah Gugnon",
+      "bet_odds": 2.32,
+      "bet_p": 0.488,
+      "edge": 0.1322,
+      "stake": 2.0,
+      "first_odds": {
+        "Kody Steele": 1.67,
+        "Noah Gugnon": 2.32
+      },
+      "suggested": {
+        "Noah Gugnon": {
+          "odds": 2.32,
+          "at": "2026-10-19T14:46:27+00:00"
+        }
+      },
+      "bet_first": {
+        "odds": 2.32,
+        "at": "2026-10-19T14:46:27+00:00",
+        "side": "Noah Gugnon"
+      }
+    },
+    {
+      "pick": "Iasmin Lucindo",
+      "opponent": "Nicolle Caliari",
+      "p": 0.8173,
+      "p_model": 0.8087,
+      "p_market": 0.7635,
+      "odds": 1.29,
+      "opp_odds": 3.9,
+      "debut": false,
+      "debut_names": [],
+      "bet": "Iasmin Lucindo",
+      "bet_odds": 1.29,
+      "bet_p": 0.8173,
+      "edge": 0.0543,
+      "stake": 2.0,
+      "first_odds": {
+        "Iasmin Lucindo": 1.29,
+        "Nicolle Caliari": 3.9
+      },
+      "suggested": {
+        "Iasmin Lucindo": {
+          "odds": 1.29,
+          "at": "2026-10-19T14:46:27+00:00"
+        }
+      },
+      "bet_first": {
+        "odds": 1.29,
+        "at": "2026-10-19T14:46:27+00:00",
+        "side": "Iasmin Lucindo"
       }
     }
   ],
@@ -332,6 +415,18 @@
     [
       "Abubakar Vagaev",
       "Jacob Malkoun"
+    ],
+    [
+      "Bolaji Oki",
+      "Daniel Santos"
+    ],
+    [
+      "Kody Steele",
+      "Noah Gugnon"
+    ],
+    [
+      "Iasmin Lucindo",
+      "Nicolle Caliari"
     ]
   ]
 }
