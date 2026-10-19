@@ -2,6 +2,7 @@
 #  - daily ~07:23 UTC: new card + latest odds until the picks lock, and results
 #  - Friday every 6 hours and Saturday 10:41-19:41 UTC: odds and late changes before a US Saturday-night card locks
 #  - Sunday and Monday every 4 hours: settle results as soon as the fight data has them
+#  - Sunday 20:17-23:47 UTC (Monday 6-10am Brisbane): put the next card up as soon as it may go up (site.next_card_from)
 #  - 1st of the month: refit the model first
 #  - whenever a code change is merged into main, so it goes live straight away (the bot's own commits don't
 #    trigger runs: pushes made with the workflow's token never do, and it only commits site/ and site_data/)
@@ -16,6 +17,7 @@ on:
     - cron: "41 */6 * * 5"                # Friday: weigh-ins, late replacements, odds moves
     - cron: "41 10,13,16,18,19 * * 6"     # Saturday: several chances to refresh odds before the card locks
     - cron: "17 */4 * * 0,1"              # Sunday and Monday every 4 hours: results soon after each event
+    - cron: "47 20-23 * * 0"              # Monday morning in Brisbane: next card up, even if a run is late or dropped
     - cron: "30 6 1 * *"
   push:
     branches: [main]

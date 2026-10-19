@@ -46,7 +46,8 @@ from the command output or by reading the PDF/workbook. Other commands:
 `.github/workflows/fightiq-site.yml` runs `python3 -m fightiq site` daily on GitHub, commits `site/` and `site_data/`,
 and deploys `site/` to GitHub Pages. Published picks are a public record: never edit or delete files in
 `site_data/` by hand, and never change a card's picks after its `locks_at` time.
-The next card is only published (and shown) a day after the current card finishes: `next_card_from` in `site.py`.
+The next card is only published (and shown) from 6am Monday Brisbane time after the current card (or a day after it
+finishes, if sooner): `next_card_from` in `site.py`; the workflow has extra runs on Monday morning Brisbane time.
 
 ## Layout
 
