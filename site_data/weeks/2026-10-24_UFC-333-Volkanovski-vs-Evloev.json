@@ -4,7 +4,7 @@
   "slug": "2026-10-24_UFC-333-Volkanovski-vs-Evloev",
   "source": "ufcstats.com",
   "published_at": "2026-10-17T21:44:23+00:00",
-  "updated_at": "2026-10-19T14:46:27+00:00",
+  "updated_at": "2026-10-19T15:38:34+00:00",
   "locks_at": "2026-10-24T14:00:00+00:00",
   "bouts": [
     {
@@ -41,18 +41,18 @@
     {
       "pick": "Petr Yan",
       "opponent": "Merab Dvalishvili",
-      "p": 0.5593,
+      "p": 0.5576,
       "p_model": 0.4104,
-      "p_market": 0.5974,
-      "odds": 1.68,
+      "p_market": 0.5955,
+      "odds": 1.69,
       "opp_odds": 2.5,
       "debut": false,
       "debut_names": [],
       "bet": "Merab Dvalishvili",
       "bet_odds": 2.5,
-      "bet_p": 0.4407,
-      "edge": 0.1016,
-      "stake": 1.69,
+      "bet_p": 0.4424,
+      "edge": 0.106,
+      "stake": 1.77,
       "first_odds": {
         "Petr Yan": 1.62,
         "Merab Dvalishvili": 2.48
