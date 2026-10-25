@@ -24,17 +24,17 @@ Date,Event,Fight,Pick,FightIQ prob.,Pick result (W/L),Bet on,Bet odds,Stake (uni
 2026-10-17,UFC Fight Night: Buckley vs. Malott,Julien Leblanc vs Nick Galanti,Nick Galanti,0.8528,W,,,,
 2026-10-17,UFC Fight Night: Buckley vs. Malott,Javad Mahjoub vs Joel Faglier,Joel Faglier,0.5845,W,,,,
 2026-10-17,UFC Fight Night: Buckley vs. Malott,Katlyn Cerminara vs Mackenzie Stiller,Mackenzie Stiller,0.5501,L,,,,
-2026-10-24,UFC 333: Volkanovski vs. Evloev,Alexander Volkanovski vs Movsar Evloev,Movsar Evloev,0.5482,,Movsar Evloev,1.99,2.0,
-2026-10-24,UFC 333: Volkanovski vs. Evloev,Petr Yan vs Merab Dvalishvili,Petr Yan,0.5457,,Merab Dvalishvili,2.38,1.47,
-2026-10-24,UFC 333: Volkanovski vs. Evloev,Lone'er Kavanagh vs Ramazan Temirov,Lone'er Kavanagh,0.5071,,,,,
-2026-10-24,UFC 333: Volkanovski vs. Evloev,Alexander Volkov vs Rizvan Kuniev,Alexander Volkov,0.5998,,Alexander Volkov,1.83,2.0,
-2026-10-24,UFC 333: Volkanovski vs. Evloev,Aaron Pico vs Losene Keita,Aaron Pico,0.5646,,,,,
-2026-10-24,UFC 333: Volkanovski vs. Evloev,Azamat Murzakanov vs Dominick Reyes,Azamat Murzakanov,0.6001,,Dominick Reyes,2.77,1.52,
-2026-10-24,UFC 333: Volkanovski vs. Evloev,Nikita Krylov vs Abdul Rakhman Yakhyaev,Abdul Rakhman Yakhyaev,0.8461,,,,,
-2026-10-24,UFC 333: Volkanovski vs. Evloev,Abus Magomedov vs Cam Rowston,Abus Magomedov,0.5037,,,,,
-2026-10-24,UFC 333: Volkanovski vs. Evloev,Grant Dawson vs Nurullo Aliev,Grant Dawson,0.5199,,,,,
-2026-10-24,UFC 333: Volkanovski vs. Evloev,Colby Thicknesse vs Asaf Chopurov,Asaf Chopurov,0.8209,,,,,
-2026-10-24,UFC 333: Volkanovski vs. Evloev,Abubakar Vagaev vs Jacob Malkoun,Abubakar Vagaev,0.5225,,Jacob Malkoun,2.46,2.0,
-2026-10-24,UFC 333: Volkanovski vs. Evloev,Bolaji Oki vs Daniel Santos,Bolaji Oki,0.5003,,,,,
-2026-10-24,UFC 333: Volkanovski vs. Evloev,Kody Steele vs Noah Gugnon,Kody Steele,0.5096,,Noah Gugnon,2.38,2.0,
-2026-10-24,UFC 333: Volkanovski vs. Evloev,Iasmin Lucindo vs Nicolle Caliari,Iasmin Lucindo,0.8353,,Iasmin Lucindo,1.26,2.0,
+2026-10-24,UFC 333: Volkanovski vs. Evloev,Alexander Volkanovski vs Movsar Evloev,Movsar Evloev,0.5482,L,Movsar Evloev,1.99,2.0,L
+2026-10-24,UFC 333: Volkanovski vs. Evloev,Petr Yan vs Merab Dvalishvili,Petr Yan,0.5457,W,Merab Dvalishvili,2.38,1.47,L
+2026-10-24,UFC 333: Volkanovski vs. Evloev,Lone'er Kavanagh vs Ramazan Temirov,Lone'er Kavanagh,0.5071,W,,,,
+2026-10-24,UFC 333: Volkanovski vs. Evloev,Alexander Volkov vs Rizvan Kuniev,Alexander Volkov,0.5998,W,Alexander Volkov,1.83,2.0,W
+2026-10-24,UFC 333: Volkanovski vs. Evloev,Aaron Pico vs Losene Keita,Aaron Pico,0.5646,W,,,,
+2026-10-24,UFC 333: Volkanovski vs. Evloev,Azamat Murzakanov vs Dominick Reyes,Azamat Murzakanov,0.6001,L,Dominick Reyes,2.77,1.52,W
+2026-10-24,UFC 333: Volkanovski vs. Evloev,Nikita Krylov vs Abdul Rakhman Yakhyaev,Abdul Rakhman Yakhyaev,0.8461,W,,,,
+2026-10-24,UFC 333: Volkanovski vs. Evloev,Abus Magomedov vs Cam Rowston,Abus Magomedov,0.5037,W,,,,
+2026-10-24,UFC 333: Volkanovski vs. Evloev,Grant Dawson vs Nurullo Aliev,Grant Dawson,0.5199,W,,,,
+2026-10-24,UFC 333: Volkanovski vs. Evloev,Colby Thicknesse vs Asaf Chopurov,Asaf Chopurov,0.8209,L,,,,
+2026-10-24,UFC 333: Volkanovski vs. Evloev,Abubakar Vagaev vs Jacob Malkoun,Abubakar Vagaev,0.5225,W,Jacob Malkoun,2.46,2.0,L
+2026-10-24,UFC 333: Volkanovski vs. Evloev,Bolaji Oki vs Daniel Santos,Bolaji Oki,0.5003,L,,,,
+2026-10-24,UFC 333: Volkanovski vs. Evloev,Kody Steele vs Noah Gugnon,Kody Steele,0.5096,W,Noah Gugnon,2.38,2.0,L
+2026-10-24,UFC 333: Volkanovski vs. Evloev,Iasmin Lucindo vs Nicolle Caliari,Iasmin Lucindo,0.8353,W,Iasmin Lucindo,1.26,2.0,W
