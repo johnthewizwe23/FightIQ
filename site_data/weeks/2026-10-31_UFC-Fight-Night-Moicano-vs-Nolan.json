@@ -1,0 +1,368 @@
+{
+  "event": "UFC Fight Night: Moicano vs. Nolan",
+  "date": "2026-10-31",
+  "slug": "2026-10-31_UFC-Fight-Night-Moicano-vs-Nolan",
+  "source": "ufcstats.com",
+  "published_at": "2026-10-25T22:35:32+00:00",
+  "updated_at": "2026-10-25T22:35:32+00:00",
+  "locks_at": "2026-10-31T21:00:00+00:00",
+  "bouts": [
+    {
+      "pick": "Tom Nolan",
+      "opponent": "Renato Moicano",
+      "p": 0.5352,
+      "p_model": 0.5548,
+      "p_market": 0.5201,
+      "odds": 1.87,
+      "opp_odds": 2.02,
+      "debut": false,
+      "debut_names": [],
+      "bet": null,
+      "bet_odds": null,
+      "bet_p": null,
+      "edge": null,
+      "stake": null,
+      "first_odds": {
+        "Tom Nolan": 1.87,
+        "Renato Moicano": 2.02
+      },
+      "suggested": {}
+    },
+    {
+      "pick": "Jacobe Smith",
+      "opponent": "Randy Brown",
+      "p": 0.7182,
+      "p_model": 0.6274,
+      "p_market": 0.7037,
+      "odds": 1.38,
+      "opp_odds": 3.05,
+      "debut": false,
+      "debut_names": [],
+      "bet": null,
+      "bet_odds": null,
+      "bet_p": null,
+      "edge": null,
+      "stake": null,
+      "first_odds": {
+        "Jacobe Smith": 1.38,
+        "Randy Brown": 3.05
+      },
+      "suggested": {}
+    },
+    {
+      "pick": "Ode Osbourne",
+      "opponent": "Cody Durden",
+      "p": 0.5046,
+      "p_model": 0.4404,
+      "p_market": 0.5262,
+      "odds": 1.83,
+      "opp_odds": 2.02,
+      "debut": false,
+      "debut_names": [],
+      "bet": null,
+      "bet_odds": null,
+      "bet_p": null,
+      "edge": null,
+      "stake": null,
+      "first_odds": {
+        "Ode Osbourne": 1.83,
+        "Cody Durden": 2.02
+      },
+      "suggested": {}
+    },
+    {
+      "pick": "Luana Santos",
+      "opponent": "Yana Santos",
+      "p": 0.7718,
+      "p_model": 0.8104,
+      "p_market": 0.7015,
+      "odds": 1.4,
+      "opp_odds": 3.15,
+      "debut": false,
+      "debut_names": [],
+      "bet": "Luana Santos",
+      "bet_odds": 1.4,
+      "bet_p": 0.7718,
+      "edge": 0.0805,
+      "stake": 2.0,
+      "first_odds": {
+        "Luana Santos": 1.4
+      },
+      "suggested": {
+        "Luana Santos": {
+          "odds": 1.4,
+          "at": "2026-10-25T22:35:32+00:00"
+        }
+      },
+      "bet_first": {
+        "odds": 1.4,
+        "at": "2026-10-25T22:35:32+00:00",
+        "side": "Luana Santos"
+      }
+    },
+    {
+      "pick": "Jean-Paul Lebosnoyani",
+      "opponent": "Farman Hasanov",
+      "p": 0.663,
+      "p_model": 0.4066,
+      "p_market": 0.7091,
+      "odds": 1.4,
+      "opp_odds": 3.35,
+      "debut": false,
+      "debut_names": [],
+      "bet": "Farman Hasanov",
+      "bet_odds": 3.35,
+      "bet_p": 0.337,
+      "edge": 0.1291,
+      "stake": 1.37,
+      "first_odds": {
+        "Jean-Paul Lebosnoyani": 1.4,
+        "Farman Hasanov": 3.35
+      },
+      "suggested": {
+        "Farman Hasanov": {
+          "odds": 3.35,
+          "at": "2026-10-25T22:35:32+00:00"
+        }
+      },
+      "bet_first": {
+        "odds": 3.35,
+        "at": "2026-10-25T22:35:32+00:00",
+        "side": "Farman Hasanov"
+      }
+    },
+    {
+      "pick": "Francis Marshall",
+      "opponent": "Dakota Hope",
+      "p": 0.7082,
+      "p_model": 0.6375,
+      "p_market": 0.6889,
+      "odds": 1.42,
+      "opp_odds": 3.0,
+      "debut": false,
+      "debut_names": [],
+      "bet": null,
+      "bet_odds": null,
+      "bet_p": null,
+      "edge": null,
+      "stake": null,
+      "first_odds": {
+        "Francis Marshall": 1.42,
+        "Dakota Hope": 3.0
+      },
+      "suggested": {}
+    },
+    {
+      "pick": "Andre Petroski",
+      "opponent": "Azamat Bekoev",
+      "p": 0.5887,
+      "p_model": 0.5887,
+      "p_market": null,
+      "odds": null,
+      "opp_odds": null,
+      "debut": false,
+      "debut_names": [],
+      "bet": null,
+      "bet_odds": null,
+      "bet_p": null,
+      "edge": null,
+      "stake": null,
+      "first_odds": {},
+      "suggested": {}
+    },
+    {
+      "pick": "Rodrigo Sezinando",
+      "opponent": "Theodor Berggren",
+      "p": 0.6006,
+      "p_model": 0.4955,
+      "p_market": 0.6138,
+      "odds": 1.6,
+      "opp_odds": 2.5,
+      "debut": false,
+      "debut_names": [],
+      "bet": null,
+      "bet_odds": null,
+      "bet_p": null,
+      "edge": null,
+      "stake": null,
+      "first_odds": {
+        "Rodrigo Sezinando": 1.6,
+        "Theodor Berggren": 2.5
+      },
+      "suggested": {}
+    },
+    {
+      "pick": "JeongYeong Lee",
+      "opponent": "Julian Erosa",
+      "p": 0.6078,
+      "p_model": 0.4921,
+      "p_market": 0.6229,
+      "odds": 1.56,
+      "opp_odds": 2.5,
+      "debut": false,
+      "debut_names": [],
+      "bet": null,
+      "bet_odds": null,
+      "bet_p": null,
+      "edge": null,
+      "stake": null,
+      "first_odds": {
+        "JeongYeong Lee": 1.56,
+        "Julian Erosa": 2.5
+      },
+      "suggested": {}
+    },
+    {
+      "pick": "Joe Kropschot",
+      "opponent": "Nick Klein",
+      "p": 0.7023,
+      "p_model": 0.4496,
+      "p_market": 0.7375,
+      "odds": 1.33,
+      "opp_odds": 3.5,
+      "debut": true,
+      "debut_names": [
+        "Joe Kropschot"
+      ],
+      "bet": null,
+      "bet_odds": null,
+      "bet_p": null,
+      "edge": null,
+      "stake": null,
+      "first_odds": {
+        "Joe Kropschot": 1.33,
+        "Nick Klein": 3.5
+      },
+      "suggested": {}
+    },
+    {
+      "pick": "Piera Rodriguez",
+      "opponent": "Talita Alencar",
+      "p": 0.7556,
+      "p_model": 0.7465,
+      "p_market": 0.7079,
+      "odds": 1.38,
+      "opp_odds": 3.15,
+      "debut": false,
+      "debut_names": [],
+      "bet": null,
+      "bet_odds": null,
+      "bet_p": null,
+      "edge": null,
+      "stake": null,
+      "first_odds": {
+        "Piera Rodriguez": 1.38,
+        "Talita Alencar": 3.15
+      },
+      "suggested": {}
+    },
+    {
+      "pick": "Lucia Szabova",
+      "opponent": "Tainara Lisboa",
+      "p": 0.8617,
+      "p_model": 0.7363,
+      "p_market": 0.8442,
+      "odds": 1.17,
+      "opp_odds": 5.6,
+      "debut": true,
+      "debut_names": [
+        "Lucia Szabova"
+      ],
+      "bet": null,
+      "bet_odds": null,
+      "bet_p": null,
+      "edge": null,
+      "stake": null,
+      "first_odds": {
+        "Lucia Szabova": 1.17,
+        "Tainara Lisboa": 5.6
+      },
+      "suggested": {}
+    },
+    {
+      "pick": "Zach Reese",
+      "opponent": "Mickey Gall",
+      "p": 0.7909,
+      "p_model": 0.8362,
+      "p_market": 0.7146,
+      "odds": 1.36,
+      "opp_odds": 3.15,
+      "debut": false,
+      "debut_names": [],
+      "bet": "Zach Reese",
+      "bet_odds": 1.36,
+      "bet_p": 0.7909,
+      "edge": 0.0757,
+      "stake": 2.0,
+      "first_odds": {
+        "Zach Reese": 1.36,
+        "Mickey Gall": 3.15
+      },
+      "suggested": {
+        "Zach Reese": {
+          "odds": 1.36,
+          "at": "2026-10-25T22:35:32+00:00"
+        }
+      },
+      "bet_first": {
+        "odds": 1.36,
+        "at": "2026-10-25T22:35:32+00:00",
+        "side": "Zach Reese"
+      }
+    }
+  ],
+  "official": [
+    [
+      "Renato Moicano",
+      "Tom Nolan"
+    ],
+    [
+      "Randy Brown",
+      "Jacobe Smith"
+    ],
+    [
+      "Ode Osbourne",
+      "Cody Durden"
+    ],
+    [
+      "Yana Santos",
+      "Luana Santos"
+    ],
+    [
+      "Jean-Paul Lebosnoyani",
+      "Farman Hasanov"
+    ],
+    [
+      "Francis Marshall",
+      "Dakota Hope"
+    ],
+    [
+      "Azamat Bekoev",
+      "Andre Petroski"
+    ],
+    [
+      "Rodrigo Sezinando",
+      "Theodor Berggren"
+    ],
+    [
+      "Julian Erosa",
+      "JeongYeong Lee"
+    ],
+    [
+      "Nick Klein",
+      "Joe Kropschot"
+    ],
+    [
+      "Talita Alencar",
+      "Piera Rodriguez"
+    ],
+    [
+      "Lucia Szabova",
+      "Tainara Lisboa"
+    ],
+    [
+      "Zach Reese",
+      "Mickey Gall"
+    ]
+  ]
+}
