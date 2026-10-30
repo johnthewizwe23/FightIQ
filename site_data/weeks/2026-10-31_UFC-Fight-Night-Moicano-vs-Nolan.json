@@ -4,7 +4,7 @@
   "slug": "2026-10-31_UFC-Fight-Night-Moicano-vs-Nolan",
   "source": "ufcstats.com",
   "published_at": "2026-10-25T22:35:32+00:00",
-  "updated_at": "2026-10-30T13:28:20+00:00",
+  "updated_at": "2026-10-30T14:20:04+00:00",
   "locks_at": "2026-10-31T21:00:00+00:00",
   "bouts": [
     {
@@ -103,18 +103,18 @@
     {
       "pick": "Jean-Paul Lebosnoyani",
       "opponent": "Farman Hasanov",
-      "p": 0.6724,
+      "p": 0.6711,
       "p_model": 0.4066,
-      "p_market": 0.7189,
+      "p_market": 0.7175,
       "odds": 1.38,
-      "opp_odds": 3.45,
+      "opp_odds": 3.41,
       "debut": false,
       "debut_names": [],
       "bet": "Farman Hasanov",
-      "bet_odds": 3.45,
-      "bet_p": 0.3276,
-      "edge": 0.1302,
-      "stake": 1.33,
+      "bet_odds": 3.41,
+      "bet_p": 0.3289,
+      "edge": 0.1215,
+      "stake": 1.26,
       "first_odds": {
         "Jean-Paul Lebosnoyani": 1.4,
         "Farman Hasanov": 3.35
@@ -282,11 +282,11 @@
     {
       "pick": "Lucia Szabova",
       "opponent": "Tainara Lisboa",
-      "p": 0.8728,
+      "p": 0.8739,
       "p_model": 0.7363,
-      "p_market": 0.8578,
+      "p_market": 0.8592,
       "odds": 1.16,
-      "opp_odds": 6.6,
+      "opp_odds": 6.8,
       "debut": true,
       "debut_names": [
         "Lucia Szabova"
