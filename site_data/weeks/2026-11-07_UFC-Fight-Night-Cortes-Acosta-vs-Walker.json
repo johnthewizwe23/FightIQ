@@ -4,7 +4,7 @@
   "slug": "2026-11-07_UFC-Fight-Night-Cortes-Acosta-vs-Walker",
   "source": "ufcstats.com",
   "published_at": "2026-11-01T20:31:04+00:00",
-  "updated_at": "2026-11-02T17:13:47+00:00",
+  "updated_at": "2026-11-02T18:24:38+00:00",
   "locks_at": "2026-11-07T22:00:00+00:00",
   "bouts": [
     {
@@ -52,18 +52,18 @@
     {
       "pick": "Elijah Smith",
       "opponent": "Davey Grant",
-      "p": 0.7464,
+      "p": 0.7606,
       "p_model": 0.756,
-      "p_market": 0.6933,
-      "odds": 1.42,
-      "opp_odds": 3.1,
+      "p_market": 0.7112,
+      "odds": 1.37,
+      "opp_odds": 3.15,
       "debut": false,
       "debut_names": [],
-      "bet": "Elijah Smith",
-      "bet_odds": 1.42,
-      "bet_p": 0.7464,
-      "edge": 0.06,
-      "stake": 2.0,
+      "bet": null,
+      "bet_odds": null,
+      "bet_p": null,
+      "edge": null,
+      "stake": null,
       "first_odds": {
         "Elijah Smith": 1.42,
         "Davey Grant": 2.85
@@ -73,11 +73,6 @@
           "odds": 1.42,
           "at": "2026-11-02T17:13:47+00:00"
         }
-      },
-      "bet_first": {
-        "odds": 1.42,
-        "at": "2026-11-02T17:13:47+00:00",
-        "side": "Elijah Smith"
       }
     },
     {
@@ -104,11 +99,11 @@
     {
       "pick": "Lucas Fernando",
       "opponent": "Billy Elekana",
-      "p": 0.7169,
+      "p": 0.7201,
       "p_model": 0.5984,
-      "p_market": 0.7118,
+      "p_market": 0.7155,
       "odds": 1.38,
-      "opp_odds": 3.25,
+      "opp_odds": 3.35,
       "debut": false,
       "debut_names": [],
       "bet": null,
