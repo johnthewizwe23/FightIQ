@@ -4,17 +4,17 @@
   "slug": "2026-11-07_UFC-Fight-Night-Cortes-Acosta-vs-Walker",
   "source": "ufcstats.com",
   "published_at": "2026-11-01T20:31:04+00:00",
-  "updated_at": "2026-11-03T15:19:39+00:00",
+  "updated_at": "2026-11-04T15:33:10+00:00",
   "locks_at": "2026-11-07T22:00:00+00:00",
   "bouts": [
     {
       "pick": "Waldo Cortes Acosta",
       "opponent": "Johnny Walker",
-      "p": 0.6636,
+      "p": 0.6719,
       "p_model": 0.5428,
-      "p_market": 0.669,
-      "odds": 1.48,
-      "opp_odds": 2.94,
+      "p_market": 0.6782,
+      "odds": 1.45,
+      "opp_odds": 2.96,
       "debut": false,
       "debut_names": [],
       "bet": null,
@@ -31,10 +31,10 @@
     {
       "pick": "Tatiana Suarez",
       "opponent": "Virna Jandiroba",
-      "p": 0.6499,
+      "p": 0.6521,
       "p_model": 0.5573,
-      "p_market": 0.649,
-      "odds": 1.53,
+      "p_market": 0.6514,
+      "odds": 1.52,
       "opp_odds": 2.8,
       "debut": false,
       "debut_names": [],
@@ -52,18 +52,18 @@
     {
       "pick": "Elijah Smith",
       "opponent": "Davey Grant",
-      "p": 0.7743,
+      "p": 0.7832,
       "p_model": 0.756,
-      "p_market": 0.7287,
-      "odds": 1.36,
-      "opp_odds": 3.55,
+      "p_market": 0.7399,
+      "odds": 1.34,
+      "opp_odds": 3.7,
       "debut": false,
       "debut_names": [],
-      "bet": "Elijah Smith",
-      "bet_odds": 1.36,
-      "bet_p": 0.7743,
-      "edge": 0.0531,
-      "stake": 2.0,
+      "bet": null,
+      "bet_odds": null,
+      "bet_p": null,
+      "edge": null,
+      "stake": null,
       "first_odds": {
         "Elijah Smith": 1.42,
         "Davey Grant": 2.85
@@ -73,42 +73,16 @@
           "odds": 1.42,
           "at": "2026-11-02T17:13:47+00:00"
         }
-      },
-      "bet_first": {
-        "odds": 1.42,
-        "at": "2026-11-02T17:13:47+00:00",
-        "side": "Elijah Smith"
       }
-    },
-    {
-      "pick": "Seokhyeon Ko",
-      "opponent": "Wellington Turman",
-      "p": 0.871,
-      "p_model": 0.7421,
-      "p_market": 0.8552,
-      "odds": 1.16,
-      "opp_odds": 6.25,
-      "debut": false,
-      "debut_names": [],
-      "bet": null,
-      "bet_odds": null,
-      "bet_p": null,
-      "edge": null,
-      "stake": null,
-      "first_odds": {
-        "Seokhyeon Ko": 1.18,
-        "Wellington Turman": 5.5
-      },
-      "suggested": {}
     },
     {
       "pick": "Lucas Fernando",
       "opponent": "Billy Elekana",
-      "p": 0.7435,
+      "p": 0.748,
       "p_model": 0.5984,
-      "p_market": 0.742,
-      "odds": 1.33,
-      "opp_odds": 3.65,
+      "p_market": 0.747,
+      "odds": 1.32,
+      "opp_odds": 3.7,
       "debut": false,
       "debut_names": [],
       "bet": null,
@@ -120,154 +94,6 @@
         "Lucas Fernando": 1.38,
         "Billy Elekana": 3.05
       },
-      "suggested": {}
-    },
-    {
-      "pick": "Mantas Kondratavicius",
-      "opponent": "Andre Petroski",
-      "p": 0.7656,
-      "p_model": 0.7206,
-      "p_market": 0.7305,
-      "odds": 1.35,
-      "opp_odds": 3.5,
-      "debut": false,
-      "debut_names": [],
-      "bet": null,
-      "bet_odds": null,
-      "bet_p": null,
-      "edge": null,
-      "stake": null,
-      "first_odds": {
-        "Mantas Kondratavicius": 1.35,
-        "Andre Petroski": 3.35
-      },
-      "suggested": {}
-    },
-    {
-      "pick": "Thomas Petersen",
-      "opponent": "Gabriel Lorenco",
-      "p": 0.6132,
-      "p_model": 0.595,
-      "p_market": 0.5945,
-      "odds": 1.64,
-      "opp_odds": 2.36,
-      "debut": true,
-      "debut_names": [
-        "Gabriel Lorenco"
-      ],
-      "bet": null,
-      "bet_odds": null,
-      "bet_p": null,
-      "edge": null,
-      "stake": null,
-      "first_odds": {
-        "Thomas Petersen": 1.6,
-        "Gabriel Lorenco": 2.38
-      },
-      "suggested": {}
-    },
-    {
-      "pick": "Karine Silva",
-      "opponent": "Gabriella Fernandes",
-      "p": 0.6916,
-      "p_model": 0.6707,
-      "p_market": 0.6587,
-      "odds": 1.5,
-      "opp_odds": 2.84,
-      "debut": false,
-      "debut_names": [],
-      "bet": null,
-      "bet_odds": null,
-      "bet_p": null,
-      "edge": null,
-      "stake": null,
-      "first_odds": {
-        "Karine Silva": 1.64,
-        "Gabriella Fernandes": 2.38
-      },
-      "suggested": {}
-    },
-    {
-      "pick": "Marcos Degli",
-      "opponent": "Mitch Raposo",
-      "p": 0.632,
-      "p_model": 0.439,
-      "p_market": 0.667,
-      "odds": 1.48,
-      "opp_odds": 2.9,
-      "debut": true,
-      "debut_names": [
-        "Marcos Degli"
-      ],
-      "bet": null,
-      "bet_odds": null,
-      "bet_p": null,
-      "edge": null,
-      "stake": null,
-      "first_odds": {
-        "Marcos Degli": 1.45,
-        "Mitch Raposo": 2.95
-      },
-      "suggested": {}
-    },
-    {
-      "pick": "Jose Delano",
-      "opponent": "Murtazali Magomedov",
-      "p": 0.5006,
-      "p_model": 0.4835,
-      "p_market": 0.5065,
-      "odds": 1.94,
-      "opp_odds": 1.99,
-      "debut": false,
-      "debut_names": [],
-      "bet": null,
-      "bet_odds": null,
-      "bet_p": null,
-      "edge": null,
-      "stake": null,
-      "first_odds": {
-        "Murtazali Magomedov": 1.95,
-        "Jose Delano": 1.94
-      },
-      "suggested": {}
-    },
-    {
-      "pick": "Keiichiro Nakamura",
-      "opponent": "Ollie Schmid",
-      "p": 0.7502,
-      "p_model": 0.5883,
-      "p_market": 0.7523,
-      "odds": 1.32,
-      "opp_odds": 3.9,
-      "debut": false,
-      "debut_names": [],
-      "bet": null,
-      "bet_odds": null,
-      "bet_p": null,
-      "edge": null,
-      "stake": null,
-      "first_odds": {
-        "Keiichiro Nakamura": 1.28,
-        "Ollie Schmid": 3.8
-      },
-      "suggested": {}
-    },
-    {
-      "pick": "Austin Bashi",
-      "opponent": "Lucas Brennan",
-      "p": 0.6955,
-      "p_model": 0.6955,
-      "p_market": null,
-      "odds": null,
-      "opp_odds": null,
-      "debut": false,
-      "debut_names": [],
-      "bet": null,
-      "bet_odds": null,
-      "bet_p": null,
-      "edge": null,
-      "stake": null,
-      "first_odds": {},
       "suggested": {}
     },
     {
@@ -302,6 +128,175 @@
       }
     },
     {
+      "pick": "Marcos Degli",
+      "opponent": "Mitch Raposo",
+      "p": 0.6339,
+      "p_model": 0.439,
+      "p_market": 0.669,
+      "odds": 1.48,
+      "opp_odds": 2.94,
+      "debut": true,
+      "debut_names": [
+        "Marcos Degli"
+      ],
+      "bet": null,
+      "bet_odds": null,
+      "bet_p": null,
+      "edge": null,
+      "stake": null,
+      "first_odds": {
+        "Marcos Degli": 1.45,
+        "Mitch Raposo": 2.95
+      },
+      "suggested": {}
+    },
+    {
+      "pick": "Keiichiro Nakamura",
+      "opponent": "Ollie Schmid",
+      "p": 0.749,
+      "p_model": 0.5883,
+      "p_market": 0.751,
+      "odds": 1.32,
+      "opp_odds": 3.85,
+      "debut": false,
+      "debut_names": [],
+      "bet": null,
+      "bet_odds": null,
+      "bet_p": null,
+      "edge": null,
+      "stake": null,
+      "first_odds": {
+        "Keiichiro Nakamura": 1.28,
+        "Ollie Schmid": 3.8
+      },
+      "suggested": {}
+    },
+    {
+      "pick": "Thomas Petersen",
+      "opponent": "Gabriel Lorenco",
+      "p": 0.6275,
+      "p_model": 0.595,
+      "p_market": 0.6109,
+      "odds": 1.6,
+      "opp_odds": 2.46,
+      "debut": true,
+      "debut_names": [
+        "Gabriel Lorenco"
+      ],
+      "bet": null,
+      "bet_odds": null,
+      "bet_p": null,
+      "edge": null,
+      "stake": null,
+      "first_odds": {
+        "Thomas Petersen": 1.6,
+        "Gabriel Lorenco": 2.38
+      },
+      "suggested": {}
+    },
+    {
+      "pick": "Karine Silva",
+      "opponent": "Gabriella Fernandes",
+      "p": 0.7073,
+      "p_model": 0.6707,
+      "p_market": 0.6773,
+      "odds": 1.46,
+      "opp_odds": 3.0,
+      "debut": false,
+      "debut_names": [],
+      "bet": null,
+      "bet_odds": null,
+      "bet_p": null,
+      "edge": null,
+      "stake": null,
+      "first_odds": {
+        "Karine Silva": 1.64,
+        "Gabriella Fernandes": 2.38
+      },
+      "suggested": {}
+    },
+    {
+      "pick": "Jose Delano",
+      "opponent": "Murtazali Magomedov",
+      "p": 0.5032,
+      "p_model": 0.4835,
+      "p_market": 0.5094,
+      "odds": 1.91,
+      "opp_odds": 1.98,
+      "debut": false,
+      "debut_names": [],
+      "bet": null,
+      "bet_odds": null,
+      "bet_p": null,
+      "edge": null,
+      "stake": null,
+      "first_odds": {
+        "Murtazali Magomedov": 1.95,
+        "Jose Delano": 1.94
+      },
+      "suggested": {}
+    },
+    {
+      "pick": "Austin Bashi",
+      "opponent": "Lucas Brennan",
+      "p": 0.6955,
+      "p_model": 0.6955,
+      "p_market": null,
+      "odds": null,
+      "opp_odds": null,
+      "debut": false,
+      "debut_names": [],
+      "bet": null,
+      "bet_odds": null,
+      "bet_p": null,
+      "edge": null,
+      "stake": null,
+      "first_odds": {},
+      "suggested": {}
+    },
+    {
+      "pick": "Mantas Kondratavicius",
+      "opponent": "Andre Petroski",
+      "p": 0.7628,
+      "p_model": 0.7206,
+      "p_market": 0.7271,
+      "odds": 1.36,
+      "opp_odds": 3.5,
+      "debut": false,
+      "debut_names": [],
+      "bet": null,
+      "bet_odds": null,
+      "bet_p": null,
+      "edge": null,
+      "stake": null,
+      "first_odds": {
+        "Mantas Kondratavicius": 1.35,
+        "Andre Petroski": 3.35
+      },
+      "suggested": {}
+    },
+    {
+      "pick": "Seokhyeon Ko",
+      "opponent": "Wellington Turman",
+      "p": 0.8669,
+      "p_model": 0.7421,
+      "p_market": 0.85,
+      "odds": 1.17,
+      "opp_odds": 6.25,
+      "debut": false,
+      "debut_names": [],
+      "bet": null,
+      "bet_odds": null,
+      "bet_p": null,
+      "edge": null,
+      "stake": null,
+      "first_odds": {
+        "Seokhyeon Ko": 1.18,
+        "Wellington Turman": 5.5
+      },
+      "suggested": {}
+    },
+    {
       "pick": "Jose Souza",
       "opponent": "Jonny Parsons",
       "p": 0.6601,
@@ -334,16 +329,20 @@
       "Elijah Smith"
     ],
     [
-      "Seokhyeon Ko",
-      "Wellington Turman"
-    ],
-    [
       "Billy Elekana",
       "Lucas Fernando"
     ],
     [
-      "Mantas Kondratavicius",
-      "Andre Petroski"
+      "Priscila Cachoeira",
+      "Nina Milosevic"
+    ],
+    [
+      "Mitch Raposo",
+      "Marcos Degli"
+    ],
+    [
+      "Keiichiro Nakamura",
+      "Ollie Schmid"
     ],
     [
       "Gabriel Lorenco",
@@ -354,24 +353,20 @@
       "Gabriella Fernandes"
     ],
     [
-      "Mitch Raposo",
-      "Marcos Degli"
-    ],
-    [
       "Jose Delano",
       "Murtazali Magomedov"
-    ],
-    [
-      "Keiichiro Nakamura",
-      "Ollie Schmid"
     ],
     [
       "Austin Bashi",
       "Lucas Brennan"
     ],
     [
-      "Priscila Cachoeira",
-      "Nina Milosevic"
+      "Mantas Kondratavicius",
+      "Andre Petroski"
+    ],
+    [
+      "Seokhyeon Ko",
+      "Wellington Turman"
     ],
     [
       "Jonny Parsons",
