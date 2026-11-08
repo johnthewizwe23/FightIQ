@@ -1,0 +1,387 @@
+{
+  "event": "UFC 334: Gane vs. Hokit",
+  "date": "2026-11-14",
+  "slug": "2026-11-14_UFC-334-Gane-vs-Hokit",
+  "source": "ufcstats.com",
+  "published_at": "2026-11-08T20:30:08+00:00",
+  "updated_at": "2026-11-08T20:30:08+00:00",
+  "locks_at": "2026-11-15T01:00:00+00:00",
+  "bouts": [
+    {
+      "pick": "Ciryl Gane",
+      "opponent": "Josh Hokit",
+      "p": 0.6685,
+      "p_model": 0.5631,
+      "p_market": 0.668,
+      "odds": 1.48,
+      "opp_odds": 2.92,
+      "debut": false,
+      "debut_names": [],
+      "bet": null,
+      "bet_odds": null,
+      "bet_p": null,
+      "edge": null,
+      "stake": null,
+      "first_odds": {
+        "Ciryl Gane": 1.48,
+        "Josh Hokit": 2.92
+      },
+      "suggested": {}
+    },
+    {
+      "pick": "Kayla Harrison",
+      "opponent": "Amanda Nunes",
+      "p": 0.6299,
+      "p_model": 0.5249,
+      "p_market": 0.6371,
+      "odds": 1.54,
+      "opp_odds": 2.64,
+      "debut": false,
+      "debut_names": [],
+      "bet": null,
+      "bet_odds": null,
+      "bet_p": null,
+      "edge": null,
+      "stake": null,
+      "first_odds": {
+        "Kayla Harrison": 1.54,
+        "Amanda Nunes": 2.64
+      },
+      "suggested": {}
+    },
+    {
+      "pick": "Caio Borralho",
+      "opponent": "Yousri Belgaroui",
+      "p": 0.5677,
+      "p_model": 0.4438,
+      "p_market": 0.5953,
+      "odds": 1.62,
+      "opp_odds": 2.32,
+      "debut": false,
+      "debut_names": [],
+      "bet": null,
+      "bet_odds": null,
+      "bet_p": null,
+      "edge": null,
+      "stake": null,
+      "first_odds": {
+        "Caio Borralho": 1.62,
+        "Yousri Belgaroui": 2.32
+      },
+      "suggested": {}
+    },
+    {
+      "pick": "Uros Medic",
+      "opponent": "Kevin Holland",
+      "p": 0.5751,
+      "p_model": 0.4482,
+      "p_market": 0.6019,
+      "odds": 1.62,
+      "opp_odds": 2.4,
+      "debut": false,
+      "debut_names": [],
+      "bet": null,
+      "bet_odds": null,
+      "bet_p": null,
+      "edge": null,
+      "stake": null,
+      "first_odds": {
+        "Uros Medic": 1.62,
+        "Kevin Holland": 2.4
+      },
+      "suggested": {}
+    },
+    {
+      "pick": "Bilal Hasan",
+      "opponent": "Luis Gurule",
+      "p": 0.9035,
+      "p_model": 0.7753,
+      "p_market": 0.8889,
+      "odds": 1.11,
+      "opp_odds": 7.0,
+      "debut": false,
+      "debut_names": [],
+      "bet": null,
+      "bet_odds": null,
+      "bet_p": null,
+      "edge": null,
+      "stake": null,
+      "first_odds": {
+        "Bilal Hasan": 1.11,
+        "Luis Gurule": 7.0
+      },
+      "suggested": {}
+    },
+    {
+      "pick": "Stephen Thompson",
+      "opponent": "Charles Radtke",
+      "p": 0.5171,
+      "p_model": 0.3655,
+      "p_market": 0.5675,
+      "odds": 1.73,
+      "opp_odds": 2.25,
+      "debut": false,
+      "debut_names": [],
+      "bet": "Charles Radtke",
+      "bet_odds": 2.25,
+      "bet_p": 0.4829,
+      "edge": 0.0865,
+      "stake": 1.73,
+      "first_odds": {
+        "Stephen Thompson": 1.73,
+        "Charles Radtke": 2.25
+      },
+      "suggested": {
+        "Charles Radtke": {
+          "odds": 2.25,
+          "at": "2026-11-08T20:30:08+00:00"
+        }
+      },
+      "bet_first": {
+        "odds": 2.25,
+        "at": "2026-11-08T20:30:08+00:00",
+        "side": "Charles Radtke"
+      }
+    },
+    {
+      "pick": "Chris Duncan",
+      "opponent": "Drew Dober",
+      "p": 0.6812,
+      "p_model": 0.7804,
+      "p_market": 0.6003,
+      "odds": 1.62,
+      "opp_odds": 2.38,
+      "debut": false,
+      "debut_names": [],
+      "bet": "Chris Duncan",
+      "bet_odds": 1.62,
+      "bet_p": 0.6812,
+      "edge": 0.1036,
+      "stake": 2.0,
+      "first_odds": {
+        "Chris Duncan": 1.62,
+        "Drew Dober": 2.38
+      },
+      "suggested": {
+        "Chris Duncan": {
+          "odds": 1.62,
+          "at": "2026-11-08T20:30:08+00:00"
+        }
+      },
+      "bet_first": {
+        "odds": 1.62,
+        "at": "2026-11-08T20:30:08+00:00",
+        "side": "Chris Duncan"
+      }
+    },
+    {
+      "pick": "Terrance McKinney",
+      "opponent": "Jim Miller",
+      "p": 0.7138,
+      "p_model": 0.7193,
+      "p_market": 0.6673,
+      "odds": 1.46,
+      "opp_odds": 2.8,
+      "debut": false,
+      "debut_names": [],
+      "bet": null,
+      "bet_odds": null,
+      "bet_p": null,
+      "edge": null,
+      "stake": null,
+      "first_odds": {
+        "Terrance McKinney": 1.46,
+        "Jim Miller": 2.8
+      },
+      "suggested": {}
+    },
+    {
+      "pick": "Donte Johnson",
+      "opponent": "Cesar Almeida",
+      "p": 0.6797,
+      "p_model": 0.7558,
+      "p_market": 0.6101,
+      "odds": 1.6,
+      "opp_odds": 2.45,
+      "debut": false,
+      "debut_names": [],
+      "bet": "Donte Johnson",
+      "bet_odds": 1.6,
+      "bet_p": 0.6797,
+      "edge": 0.0875,
+      "stake": 2.0,
+      "first_odds": {
+        "Donte Johnson": 1.6,
+        "Cesar Almeida": 2.45
+      },
+      "suggested": {
+        "Donte Johnson": {
+          "odds": 1.6,
+          "at": "2026-11-08T20:30:08+00:00"
+        }
+      },
+      "bet_first": {
+        "odds": 1.6,
+        "at": "2026-11-08T20:30:08+00:00",
+        "side": "Donte Johnson"
+      }
+    },
+    {
+      "pick": "Melquizael Costa",
+      "opponent": "Jared Gordon",
+      "p": 0.8252,
+      "p_model": 0.8324,
+      "p_market": 0.765,
+      "odds": 1.28,
+      "opp_odds": 3.8,
+      "debut": false,
+      "debut_names": [],
+      "bet": "Melquizael Costa",
+      "bet_odds": 1.28,
+      "bet_p": 0.8252,
+      "edge": 0.0563,
+      "stake": 2.0,
+      "first_odds": {
+        "Melquizael Costa": 1.28,
+        "Jared Gordon": 3.8
+      },
+      "suggested": {
+        "Melquizael Costa": {
+          "odds": 1.28,
+          "at": "2026-11-08T20:30:08+00:00"
+        }
+      },
+      "bet_first": {
+        "odds": 1.28,
+        "at": "2026-11-08T20:30:08+00:00",
+        "side": "Melquizael Costa"
+      }
+    },
+    {
+      "pick": "Bia Mesquita",
+      "opponent": "Macy Chiasson",
+      "p": 0.7175,
+      "p_model": 0.7446,
+      "p_market": 0.6618,
+      "odds": 1.47,
+      "opp_odds": 2.75,
+      "debut": false,
+      "debut_names": [],
+      "bet": "Bia Mesquita",
+      "bet_odds": 1.47,
+      "bet_p": 0.7175,
+      "edge": 0.0548,
+      "stake": 2.0,
+      "first_odds": {
+        "Bia Mesquita": 1.47,
+        "Macy Chiasson": 2.75
+      },
+      "suggested": {
+        "Bia Mesquita": {
+          "odds": 1.47,
+          "at": "2026-11-08T20:30:08+00:00"
+        }
+      },
+      "bet_first": {
+        "odds": 1.47,
+        "at": "2026-11-08T20:30:08+00:00",
+        "side": "Bia Mesquita"
+      }
+    },
+    {
+      "pick": "Juan Diaz",
+      "opponent": "Adrian Yanez",
+      "p": 0.6659,
+      "p_model": 0.6659,
+      "p_market": null,
+      "odds": null,
+      "opp_odds": null,
+      "debut": false,
+      "debut_names": [],
+      "bet": null,
+      "bet_odds": null,
+      "bet_p": null,
+      "edge": null,
+      "stake": null,
+      "first_odds": {},
+      "suggested": {}
+    },
+    {
+      "pick": "Evan Elder",
+      "opponent": "Samuel Sanches",
+      "p": 0.5149,
+      "p_model": 0.4973,
+      "p_market": 0.5177,
+      "odds": 1.87,
+      "opp_odds": 2.0,
+      "debut": true,
+      "debut_names": [
+        "Samuel Sanches"
+      ],
+      "bet": null,
+      "bet_odds": null,
+      "bet_p": null,
+      "edge": null,
+      "stake": null,
+      "first_odds": {
+        "Evan Elder": 1.87,
+        "Samuel Sanches": 2.0
+      },
+      "suggested": {}
+    }
+  ],
+  "official": [
+    [
+      "Ciryl Gane",
+      "Josh Hokit"
+    ],
+    [
+      "Kayla Harrison",
+      "Amanda Nunes"
+    ],
+    [
+      "Caio Borralho",
+      "Yousri Belgaroui"
+    ],
+    [
+      "Uros Medic",
+      "Kevin Holland"
+    ],
+    [
+      "Bilal Hasan",
+      "Luis Gurule"
+    ],
+    [
+      "Stephen Thompson",
+      "Charles Radtke"
+    ],
+    [
+      "Drew Dober",
+      "Chris Duncan"
+    ],
+    [
+      "Jim Miller",
+      "Terrance McKinney"
+    ],
+    [
+      "Donte Johnson",
+      "Cesar Almeida"
+    ],
+    [
+      "Jared Gordon",
+      "Melquizael Costa"
+    ],
+    [
+      "Macy Chiasson",
+      "Bia Mesquita"
+    ],
+    [
+      "Adrian Yanez",
+      "Juan Diaz"
+    ],
+    [
+      "Evan Elder",
+      "Samuel Sanches"
+    ]
+  ]
+}
