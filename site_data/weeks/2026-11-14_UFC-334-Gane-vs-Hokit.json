@@ -4,7 +4,7 @@
   "slug": "2026-11-14_UFC-334-Gane-vs-Hokit",
   "source": "ufcstats.com",
   "published_at": "2026-11-08T20:30:08+00:00",
-  "updated_at": "2026-11-09T17:40:03+00:00",
+  "updated_at": "2026-11-09T18:50:51+00:00",
   "locks_at": "2026-11-15T01:00:00+00:00",
   "bouts": [
     {
@@ -73,11 +73,11 @@
     {
       "pick": "Uros Medic",
       "opponent": "Kevin Holland",
-      "p": 0.5586,
+      "p": 0.5547,
       "p_model": 0.4482,
-      "p_market": 0.5838,
+      "p_market": 0.5794,
       "odds": 1.69,
-      "opp_odds": 2.35,
+      "opp_odds": 2.3,
       "debut": false,
       "debut_names": [],
       "bet": null,
