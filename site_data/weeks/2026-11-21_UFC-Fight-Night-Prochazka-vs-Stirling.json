@@ -1,0 +1,350 @@
+{
+  "event": "UFC Fight Night: Prochazka vs. Stirling",
+  "date": "2026-11-21",
+  "slug": "2026-11-21_UFC-Fight-Night-Prochazka-vs-Stirling",
+  "source": "ufcstats.com",
+  "published_at": "2026-11-15T21:04:02+00:00",
+  "updated_at": "2026-11-15T21:04:02+00:00",
+  "locks_at": "2026-11-21T15:15:00+00:00",
+  "bouts": [
+    {
+      "pick": "Navajo Stirling",
+      "opponent": "Jiri Prochazka",
+      "p": 0.6511,
+      "p_model": 0.7379,
+      "p_market": 0.5833,
+      "odds": 1.67,
+      "opp_odds": 2.3,
+      "debut": false,
+      "debut_names": [],
+      "bet": "Navajo Stirling",
+      "bet_odds": 1.67,
+      "bet_p": 0.6511,
+      "edge": 0.0873,
+      "stake": 2.0,
+      "first_odds": {
+        "Navajo Stirling": 1.67,
+        "Jiri Prochazka": 2.3
+      },
+      "suggested": {
+        "Navajo Stirling": {
+          "odds": 1.67,
+          "at": "2026-11-15T21:04:02+00:00"
+        }
+      },
+      "bet_first": {
+        "odds": 1.67,
+        "at": "2026-11-15T21:04:02+00:00",
+        "side": "Navajo Stirling"
+      }
+    },
+    {
+      "pick": "Kevin Vallejos",
+      "opponent": "Aljamain Sterling",
+      "p": 0.5523,
+      "p_model": 0.5226,
+      "p_market": 0.5509,
+      "odds": 1.75,
+      "opp_odds": 2.12,
+      "debut": false,
+      "debut_names": [],
+      "bet": null,
+      "bet_odds": null,
+      "bet_p": null,
+      "edge": null,
+      "stake": null,
+      "first_odds": {
+        "Kevin Vallejos": 1.75,
+        "Aljamain Sterling": 2.12
+      },
+      "suggested": {}
+    },
+    {
+      "pick": "Dan Hooker",
+      "opponent": "Brian Ortega",
+      "p": 0.5439,
+      "p_model": 0.3629,
+      "p_market": 0.5979,
+      "odds": 1.62,
+      "opp_odds": 2.35,
+      "debut": false,
+      "debut_names": [],
+      "bet": "Brian Ortega",
+      "bet_odds": 2.35,
+      "bet_p": 0.4561,
+      "edge": 0.0717,
+      "stake": 1.33,
+      "first_odds": {
+        "Dan Hooker": 1.62,
+        "Brian Ortega": 2.35
+      },
+      "suggested": {
+        "Brian Ortega": {
+          "odds": 2.35,
+          "at": "2026-11-15T21:04:02+00:00"
+        }
+      },
+      "bet_first": {
+        "odds": 2.35,
+        "at": "2026-11-15T21:04:02+00:00",
+        "side": "Brian Ortega"
+      }
+    },
+    {
+      "pick": "Kyoji Horiguchi",
+      "opponent": "Asu Almabayev",
+      "p": 0.6191,
+      "p_model": 0.473,
+      "p_market": 0.642,
+      "odds": 1.51,
+      "opp_odds": 2.6,
+      "debut": false,
+      "debut_names": [],
+      "bet": null,
+      "bet_odds": null,
+      "bet_p": null,
+      "edge": null,
+      "stake": null,
+      "first_odds": {
+        "Kyoji Horiguchi": 1.51,
+        "Asu Almabayev": 2.6
+      },
+      "suggested": {}
+    },
+    {
+      "pick": "Ikram Aliskerov",
+      "opponent": "Jared Cannonier",
+      "p": 0.8154,
+      "p_model": 0.8315,
+      "p_market": 0.7517,
+      "odds": 1.3,
+      "opp_odds": 3.6,
+      "debut": false,
+      "debut_names": [],
+      "bet": "Ikram Aliskerov",
+      "bet_odds": 1.3,
+      "bet_p": 0.8154,
+      "edge": 0.06,
+      "stake": 2.0,
+      "first_odds": {
+        "Ikram Aliskerov": 1.3,
+        "Jared Cannonier": 3.6
+      },
+      "suggested": {
+        "Ikram Aliskerov": {
+          "odds": 1.3,
+          "at": "2026-11-15T21:04:02+00:00"
+        }
+      },
+      "bet_first": {
+        "odds": 1.3,
+        "at": "2026-11-15T21:04:02+00:00",
+        "side": "Ikram Aliskerov"
+      }
+    },
+    {
+      "pick": "Aleksandre Topuria",
+      "opponent": "Santiago Luna",
+      "p": 0.5997,
+      "p_model": 0.2821,
+      "p_market": 0.6866,
+      "odds": 1.42,
+      "opp_odds": 2.95,
+      "debut": false,
+      "debut_names": [],
+      "bet": "Santiago Luna",
+      "bet_odds": 2.95,
+      "bet_p": 0.4003,
+      "edge": 0.1808,
+      "stake": 2.0,
+      "first_odds": {
+        "Aleksandre Topuria": 1.42,
+        "Santiago Luna": 2.95
+      },
+      "suggested": {
+        "Santiago Luna": {
+          "odds": 2.95,
+          "at": "2026-11-15T21:04:02+00:00"
+        }
+      },
+      "bet_first": {
+        "odds": 2.95,
+        "at": "2026-11-15T21:04:02+00:00",
+        "side": "Santiago Luna"
+      }
+    },
+    {
+      "pick": "Shamil Gaziev",
+      "opponent": "Tallison Teixeira",
+      "p": 0.5741,
+      "p_model": 0.2788,
+      "p_market": 0.6618,
+      "odds": 1.5,
+      "opp_odds": 2.9,
+      "debut": false,
+      "debut_names": [],
+      "bet": "Tallison Teixeira",
+      "bet_odds": 2.9,
+      "bet_p": 0.4259,
+      "edge": 0.235,
+      "stake": 2.0,
+      "first_odds": {
+        "Shamil Gaziev": 1.5,
+        "Tallison Teixeira": 2.9
+      },
+      "suggested": {
+        "Tallison Teixeira": {
+          "odds": 2.9,
+          "at": "2026-11-15T21:04:02+00:00"
+        }
+      },
+      "bet_first": {
+        "odds": 2.9,
+        "at": "2026-11-15T21:04:02+00:00",
+        "side": "Tallison Teixeira"
+      }
+    },
+    {
+      "pick": "Alessandro Costa",
+      "opponent": "Amir Albazi",
+      "p": 0.5707,
+      "p_model": 0.5912,
+      "p_market": 0.5475,
+      "odds": 1.77,
+      "opp_odds": 2.12,
+      "debut": false,
+      "debut_names": [],
+      "bet": null,
+      "bet_odds": null,
+      "bet_p": null,
+      "edge": null,
+      "stake": null,
+      "first_odds": {
+        "Alessandro Costa": 1.77,
+        "Amir Albazi": 2.12
+      },
+      "suggested": {}
+    },
+    {
+      "pick": "Jake Matthews",
+      "opponent": "Tahir Abdullayev",
+      "p": 0.6398,
+      "p_model": 0.6041,
+      "p_market": 0.6218,
+      "odds": 1.58,
+      "opp_odds": 2.55,
+      "debut": false,
+      "debut_names": [],
+      "bet": null,
+      "bet_odds": null,
+      "bet_p": null,
+      "edge": null,
+      "stake": null,
+      "first_odds": {
+        "Jake Matthews": 1.58,
+        "Tahir Abdullayev": 2.55
+      },
+      "suggested": {}
+    },
+    {
+      "pick": "Dom Mar Fan",
+      "opponent": "Nikolas Motta",
+      "p": 0.6522,
+      "p_model": 0.745,
+      "p_market": 0.5815,
+      "odds": 1.67,
+      "opp_odds": 2.28,
+      "debut": false,
+      "debut_names": [],
+      "bet": "Dom Mar Fan",
+      "bet_odds": 1.67,
+      "bet_p": 0.6522,
+      "edge": 0.0892,
+      "stake": 2.0,
+      "first_odds": {
+        "Dom Mar Fan": 1.67,
+        "Nikolas Motta": 2.28
+      },
+      "suggested": {
+        "Dom Mar Fan": {
+          "odds": 1.67,
+          "at": "2026-11-15T21:04:02+00:00"
+        }
+      },
+      "bet_first": {
+        "odds": 1.67,
+        "at": "2026-11-15T21:04:02+00:00",
+        "side": "Dom Mar Fan"
+      }
+    },
+    {
+      "pick": "Diyar Nurgozhay",
+      "opponent": "Alik Lorenz",
+      "p": 0.7441,
+      "p_model": 0.7541,
+      "p_market": 0.6911,
+      "odds": 1.42,
+      "opp_odds": 3.05,
+      "debut": true,
+      "debut_names": [
+        "Alik Lorenz"
+      ],
+      "bet": null,
+      "bet_odds": null,
+      "bet_p": null,
+      "edge": null,
+      "stake": null,
+      "first_odds": {
+        "Diyar Nurgozhay": 1.42,
+        "Alik Lorenz": 3.05
+      },
+      "suggested": {}
+    }
+  ],
+  "official": [
+    [
+      "Jiri Prochazka",
+      "Navajo Stirling"
+    ],
+    [
+      "Aljamain Sterling",
+      "Kevin Vallejos"
+    ],
+    [
+      "Dan Hooker",
+      "Brian Ortega"
+    ],
+    [
+      "Kyoji Horiguchi",
+      "Asu Almabayev"
+    ],
+    [
+      "Jared Cannonier",
+      "Ikram Aliskerov"
+    ],
+    [
+      "Aleksandre Topuria",
+      "Santiago Luna"
+    ],
+    [
+      "Shamil Gaziev",
+      "Tallison Teixeira"
+    ],
+    [
+      "Amir Albazi",
+      "Alessandro Costa"
+    ],
+    [
+      "Jake Matthews",
+      "Tahir Abdullayev"
+    ],
+    [
+      "Nikolas Motta",
+      "Dom Mar Fan"
+    ],
+    [
+      "Diyar Nurgozhay",
+      "Alik Lorenz"
+    ]
+  ]
+}
