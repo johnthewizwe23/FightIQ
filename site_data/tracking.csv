@@ -77,15 +77,27 @@ Date,Event,Fight,Pick,FightIQ prob.,Pick result (W/L),Bet on,Bet odds,Stake (uni
 2026-11-14,UFC 334: Gane vs. Hokit,Macy Chiasson vs Bia Mesquita,Bia Mesquita,0.7438,W,Bia Mesquita,1.43,2.0,W
 2026-11-14,UFC 334: Gane vs. Hokit,Evan Elder vs Samuel Sanches,Samuel Sanches,0.5212,L,,,,
 2026-11-14,UFC 334: Gane vs. Hokit,Alatengheili vs Juan Diaz,Juan Diaz,0.8179,W,,,,
-2026-11-21,UFC Fight Night: Prochazka vs. Stirling,Jiri Prochazka vs Navajo Stirling,Navajo Stirling,0.684,,Navajo Stirling,1.6,2.0,
-2026-11-21,UFC Fight Night: Prochazka vs. Stirling,Aljamain Sterling vs Kevin Vallejos,Kevin Vallejos,0.5507,,,,,
-2026-11-21,UFC Fight Night: Prochazka vs. Stirling,Dan Hooker vs Brian Ortega,Dan Hooker,0.5727,,Brian Ortega,2.66,2.0,
-2026-11-21,UFC Fight Night: Prochazka vs. Stirling,Kyoji Horiguchi vs Asu Almabayev,Kyoji Horiguchi,0.6254,,,,,
-2026-11-21,UFC Fight Night: Prochazka vs. Stirling,Jared Cannonier vs Ikram Aliskerov,Ikram Aliskerov,0.801,,Ikram Aliskerov,1.36,2.0,
-2026-11-21,UFC Fight Night: Prochazka vs. Stirling,Aleksandre Topuria vs Santiago Luna,Aleksandre Topuria,0.6356,,Santiago Luna,3.55,2.0,
-2026-11-21,UFC Fight Night: Prochazka vs. Stirling,Shamil Gaziev vs Tallison Teixeira,Shamil Gaziev,0.5483,,Tallison Teixeira,2.72,2.0,
-2026-11-21,UFC Fight Night: Prochazka vs. Stirling,Amir Albazi vs Alessandro Costa,Alessandro Costa,0.53,,,,,
-2026-11-21,UFC Fight Night: Prochazka vs. Stirling,Jake Matthews vs Tahir Abdullayev,Jake Matthews,0.697,,,,,
-2026-11-21,UFC Fight Night: Prochazka vs. Stirling,Nikolas Motta vs Dom Mar Fan,Dom Mar Fan,0.6742,,Dom Mar Fan,1.64,2.0,
-2026-11-21,UFC Fight Night: Prochazka vs. Stirling,Diyar Nurgozhay vs Alik Lorenz,Diyar Nurgozhay,0.7521,,,,,
-2026-11-21,UFC Fight Night: Prochazka vs. Stirling,Shoaib Yousaf vs John Mitchell,John Mitchell,0.5732,,,,,
+2026-11-21,UFC Fight Night: Prochazka vs. Stirling,Jiri Prochazka vs Navajo Stirling,Navajo Stirling,0.684,W,Navajo Stirling,1.6,2.0,W
+2026-11-21,UFC Fight Night: Prochazka vs. Stirling,Aljamain Sterling vs Kevin Vallejos,Kevin Vallejos,0.5507,W,,,,
+2026-11-21,UFC Fight Night: Prochazka vs. Stirling,Dan Hooker vs Brian Ortega,Dan Hooker,0.5727,W,Brian Ortega,2.66,2.0,L
+2026-11-21,UFC Fight Night: Prochazka vs. Stirling,Kyoji Horiguchi vs Asu Almabayev,Kyoji Horiguchi,0.6254,W,,,,
+2026-11-21,UFC Fight Night: Prochazka vs. Stirling,Jared Cannonier vs Ikram Aliskerov,Ikram Aliskerov,0.801,W,Ikram Aliskerov,1.36,2.0,W
+2026-11-21,UFC Fight Night: Prochazka vs. Stirling,Aleksandre Topuria vs Santiago Luna,Aleksandre Topuria,0.6356,L,Santiago Luna,3.55,2.0,W
+2026-11-21,UFC Fight Night: Prochazka vs. Stirling,Shamil Gaziev vs Tallison Teixeira,Shamil Gaziev,0.5483,L,Tallison Teixeira,2.72,2.0,W
+2026-11-21,UFC Fight Night: Prochazka vs. Stirling,Amir Albazi vs Alessandro Costa,Alessandro Costa,0.53,L,,,,
+2026-11-21,UFC Fight Night: Prochazka vs. Stirling,Jake Matthews vs Tahir Abdullayev,Jake Matthews,0.697,L,,,,
+2026-11-21,UFC Fight Night: Prochazka vs. Stirling,Nikolas Motta vs Dom Mar Fan,Dom Mar Fan,0.6742,W,Dom Mar Fan,1.64,2.0,W
+2026-11-21,UFC Fight Night: Prochazka vs. Stirling,Diyar Nurgozhay vs Alik Lorenz,Diyar Nurgozhay,0.7521,W,,,,
+2026-11-21,UFC Fight Night: Prochazka vs. Stirling,Shoaib Yousaf vs John Mitchell,John Mitchell,0.5732,W,,,,
+2026-12-05,UFC Fight Night: Adesanya vs. Magomedov,Israel Adesanya vs Shara Magomedov,Israel Adesanya,0.5752,,,,,
+2026-12-05,UFC Fight Night: Adesanya vs. Magomedov,Ian Machado Garry vs Yaroslav Amosov,Ian Machado Garry,0.6387,,,,,
+2026-12-05,UFC Fight Night: Adesanya vs. Magomedov,Serghei Spivac vs Mario Pinto,Mario Pinto,0.7782,,Mario Pinto,1.35,2.0,
+2026-12-05,UFC Fight Night: Adesanya vs. Magomedov,Levan Chokheli vs Islam Dulatov,Islam Dulatov,0.701,,,,,
+2026-12-05,UFC Fight Night: Adesanya vs. Magomedov,Mairon Santos vs Akbar Abdullaev,Akbar Abdullaev,0.5738,,,,,
+2026-12-05,UFC Fight Night: Adesanya vs. Magomedov,Magomed Tuchalov vs Ion Cutelaba,Magomed Tuchalov,0.668,,,,,
+2026-12-05,UFC Fight Night: Adesanya vs. Magomedov,Bruno Silva vs Jafel Filho,Jafel Filho,0.5679,,,,,
+2026-12-05,UFC Fight Night: Adesanya vs. Magomedov,Uran Satybaldiev vs Ivan Gnizditskiy,Ivan Gnizditskiy,0.5251,,,,,
+2026-12-05,UFC Fight Night: Adesanya vs. Magomedov,Marco Tulio vs JunYong Park,Marco Tulio,0.6024,,,,,
+2026-12-05,UFC Fight Night: Adesanya vs. Magomedov,Pavel Andrusca vs Mahammadali Osmanli,Pavel Andrusca,0.7819,,,,,
+2026-12-05,UFC Fight Night: Adesanya vs. Magomedov,Modestino Rodrigues vs Matthieu Duclos,Matthieu Duclos,0.5107,,,,,
+2026-12-05,UFC Fight Night: Adesanya vs. Magomedov,Abdul Hussein vs Hecher Sosa,Abdul Hussein,0.5355,,,,,

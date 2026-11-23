@@ -1,0 +1,314 @@
+{
+  "event": "UFC Fight Night: Adesanya vs. Magomedov",
+  "date": "2026-12-05",
+  "slug": "2026-12-05_UFC-Fight-Night-Adesanya-vs-Magomedov",
+  "source": "ufcstats.com",
+  "published_at": "2026-11-23T00:55:27+00:00",
+  "updated_at": "2026-11-23T00:55:27+00:00",
+  "locks_at": "2026-12-05T15:00:00+00:00",
+  "bouts": [
+    {
+      "pick": "Israel Adesanya",
+      "opponent": "Shara Magomedov",
+      "p": 0.5752,
+      "p_model": 0.4495,
+      "p_market": 0.6016,
+      "odds": 1.64,
+      "opp_odds": 2.45,
+      "debut": false,
+      "debut_names": [],
+      "bet": null,
+      "bet_odds": null,
+      "bet_p": null,
+      "edge": null,
+      "stake": null,
+      "first_odds": {
+        "Israel Adesanya": 1.64,
+        "Shara Magomedov": 2.45
+      },
+      "suggested": {}
+    },
+    {
+      "pick": "Ian Machado Garry",
+      "opponent": "Yaroslav Amosov",
+      "p": 0.6387,
+      "p_model": 0.5653,
+      "p_market": 0.6337,
+      "odds": 1.53,
+      "opp_odds": 2.55,
+      "debut": false,
+      "debut_names": [],
+      "bet": null,
+      "bet_odds": null,
+      "bet_p": null,
+      "edge": null,
+      "stake": null,
+      "first_odds": {
+        "Ian Machado Garry": 1.53,
+        "Yaroslav Amosov": 2.55
+      },
+      "suggested": {}
+    },
+    {
+      "pick": "Mario Pinto",
+      "opponent": "Serghei Spivac",
+      "p": 0.7782,
+      "p_model": 0.7898,
+      "p_market": 0.72,
+      "odds": 1.35,
+      "opp_odds": 3.2,
+      "debut": false,
+      "debut_names": [],
+      "bet": "Mario Pinto",
+      "bet_odds": 1.35,
+      "bet_p": 0.7782,
+      "edge": 0.0505,
+      "stake": 2.0,
+      "first_odds": {
+        "Mario Pinto": 1.35,
+        "Serghei Spivac": 3.2
+      },
+      "suggested": {
+        "Mario Pinto": {
+          "odds": 1.35,
+          "at": "2026-11-23T00:55:27+00:00"
+        }
+      },
+      "bet_first": {
+        "odds": 1.35,
+        "at": "2026-11-23T00:55:27+00:00",
+        "side": "Mario Pinto"
+      }
+    },
+    {
+      "pick": "Islam Dulatov",
+      "opponent": "Levan Chokheli",
+      "p": 0.701,
+      "p_model": 0.5655,
+      "p_market": 0.7037,
+      "odds": 1.38,
+      "opp_odds": 3.05,
+      "debut": false,
+      "debut_names": [],
+      "bet": null,
+      "bet_odds": null,
+      "bet_p": null,
+      "edge": null,
+      "stake": null,
+      "first_odds": {
+        "Islam Dulatov": 1.38,
+        "Levan Chokheli": 3.05
+      },
+      "suggested": {}
+    },
+    {
+      "pick": "Akbar Abdullaev",
+      "opponent": "Mairon Santos",
+      "p": 0.5738,
+      "p_model": 0.2295,
+      "p_market": 0.6817,
+      "odds": 1.42,
+      "opp_odds": 2.85,
+      "debut": true,
+      "debut_names": [
+        "Akbar Abdullaev"
+      ],
+      "bet": null,
+      "bet_odds": null,
+      "bet_p": null,
+      "edge": null,
+      "stake": null,
+      "first_odds": {
+        "Akbar Abdullaev": 1.42,
+        "Mairon Santos": 2.85
+      },
+      "suggested": {}
+    },
+    {
+      "pick": "Magomed Tuchalov",
+      "opponent": "Ion Cutelaba",
+      "p": 0.668,
+      "p_model": 0.6319,
+      "p_market": 0.6446,
+      "odds": 1.5,
+      "opp_odds": 2.6,
+      "debut": false,
+      "debut_names": [],
+      "bet": null,
+      "bet_odds": null,
+      "bet_p": null,
+      "edge": null,
+      "stake": null,
+      "first_odds": {
+        "Magomed Tuchalov": 1.5,
+        "Ion Cutelaba": 2.6
+      },
+      "suggested": {}
+    },
+    {
+      "pick": "Jafel Filho",
+      "opponent": "Bruno Silva",
+      "p": 0.5679,
+      "p_model": 0.5686,
+      "p_market": 0.5523,
+      "odds": 1.73,
+      "opp_odds": 2.1,
+      "debut": false,
+      "debut_names": [],
+      "bet": null,
+      "bet_odds": null,
+      "bet_p": null,
+      "edge": null,
+      "stake": null,
+      "first_odds": {
+        "Jafel Filho": 1.73,
+        "Bruno Silva": 2.1
+      },
+      "suggested": {}
+    },
+    {
+      "pick": "Ivan Gnizditskiy",
+      "opponent": "Uran Satybaldiev",
+      "p": 0.5251,
+      "p_model": 0.5251,
+      "p_market": null,
+      "odds": null,
+      "opp_odds": null,
+      "debut": true,
+      "debut_names": [
+        "Ivan Gnizditskiy"
+      ],
+      "bet": null,
+      "bet_odds": null,
+      "bet_p": null,
+      "edge": null,
+      "stake": null,
+      "first_odds": {},
+      "suggested": {}
+    },
+    {
+      "pick": "Marco Tulio",
+      "opponent": "JunYong Park",
+      "p": 0.6024,
+      "p_model": 0.6024,
+      "p_market": null,
+      "odds": null,
+      "opp_odds": null,
+      "debut": false,
+      "debut_names": [],
+      "bet": null,
+      "bet_odds": null,
+      "bet_p": null,
+      "edge": null,
+      "stake": null,
+      "first_odds": {},
+      "suggested": {}
+    },
+    {
+      "pick": "Pavel Andrusca",
+      "opponent": "Mahammadali Osmanli",
+      "p": 0.7819,
+      "p_model": 0.7819,
+      "p_market": null,
+      "odds": null,
+      "opp_odds": null,
+      "debut": false,
+      "debut_names": [],
+      "bet": null,
+      "bet_odds": null,
+      "bet_p": null,
+      "edge": null,
+      "stake": null,
+      "first_odds": {},
+      "suggested": {}
+    },
+    {
+      "pick": "Matthieu Duclos",
+      "opponent": "Modestino Rodrigues",
+      "p": 0.5107,
+      "p_model": 0.5107,
+      "p_market": null,
+      "odds": null,
+      "opp_odds": null,
+      "debut": true,
+      "debut_names": [
+        "Modestino Rodrigues"
+      ],
+      "bet": null,
+      "bet_odds": null,
+      "bet_p": null,
+      "edge": null,
+      "stake": null,
+      "first_odds": {},
+      "suggested": {}
+    },
+    {
+      "pick": "Abdul Hussein",
+      "opponent": "Hecher Sosa",
+      "p": 0.5355,
+      "p_model": 0.5355,
+      "p_market": null,
+      "odds": null,
+      "opp_odds": null,
+      "debut": false,
+      "debut_names": [],
+      "bet": null,
+      "bet_odds": null,
+      "bet_p": null,
+      "edge": null,
+      "stake": null,
+      "first_odds": {},
+      "suggested": {}
+    }
+  ],
+  "official": [
+    [
+      "Israel Adesanya",
+      "Shara Magomedov"
+    ],
+    [
+      "Ian Machado Garry",
+      "Yaroslav Amosov"
+    ],
+    [
+      "Serghei Spivac",
+      "Mario Pinto"
+    ],
+    [
+      "Levan Chokheli",
+      "Islam Dulatov"
+    ],
+    [
+      "Mairon Santos",
+      "Akbar Abdullaev"
+    ],
+    [
+      "Magomed Tuchalov",
+      "Ion Cutelaba"
+    ],
+    [
+      "Bruno Silva",
+      "Jafel Filho"
+    ],
+    [
+      "Uran Satybaldiev",
+      "Ivan Gnizditskiy"
+    ],
+    [
+      "Marco Tulio",
+      "JunYong Park"
+    ],
+    [
+      "Pavel Andrusca",
+      "Mahammadali Osmanli"
+    ],
+    [
+      "Modestino Rodrigues",
+      "Matthieu Duclos"
+    ],
+    [
+      "Abdul Hussein",
+      "Hecher Sosa"
+    ]
+  ]
+}
