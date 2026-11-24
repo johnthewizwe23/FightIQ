@@ -4,29 +4,39 @@
   "slug": "2026-12-05_UFC-Fight-Night-Adesanya-vs-Magomedov",
   "source": "ufcstats.com",
   "published_at": "2026-11-23T00:55:27+00:00",
-  "updated_at": "2026-11-24T02:55:06+00:00",
+  "updated_at": "2026-11-24T18:58:11+00:00",
   "locks_at": "2026-12-05T15:00:00+00:00",
   "bouts": [
     {
       "pick": "Israel Adesanya",
       "opponent": "Shara Magomedov",
-      "p": 0.5769,
+      "p": 0.5937,
       "p_model": 0.4495,
-      "p_market": 0.6035,
-      "odds": 1.62,
-      "opp_odds": 2.42,
+      "p_market": 0.622,
+      "odds": 1.6,
+      "opp_odds": 2.62,
       "debut": false,
       "debut_names": [],
-      "bet": null,
-      "bet_odds": null,
-      "bet_p": null,
-      "edge": null,
-      "stake": null,
+      "bet": "Shara Magomedov",
+      "bet_odds": 2.62,
+      "bet_p": 0.4063,
+      "edge": 0.0645,
+      "stake": 0.99,
       "first_odds": {
         "Israel Adesanya": 1.64,
         "Shara Magomedov": 2.45
       },
-      "suggested": {}
+      "suggested": {
+        "Shara Magomedov": {
+          "odds": 2.62,
+          "at": "2026-11-24T18:58:11+00:00"
+        }
+      },
+      "bet_first": {
+        "odds": 2.62,
+        "at": "2026-11-24T18:58:11+00:00",
+        "side": "Shara Magomedov"
+      }
     },
     {
       "pick": "Ian Machado Garry",
@@ -52,10 +62,10 @@
     {
       "pick": "Mario Pinto",
       "opponent": "Serghei Spivac",
-      "p": 0.8103,
+      "p": 0.8043,
       "p_model": 0.7898,
-      "p_market": 0.7625,
-      "odds": 1.28,
+      "p_market": 0.7545,
+      "odds": 1.3,
       "opp_odds": 3.7,
       "debut": false,
       "debut_names": [],
@@ -78,11 +88,11 @@
     {
       "pick": "Islam Dulatov",
       "opponent": "Levan Chokheli",
-      "p": 0.6871,
+      "p": 0.6523,
       "p_model": 0.5655,
-      "p_market": 0.6882,
-      "odds": 1.43,
-      "opp_odds": 3.05,
+      "p_market": 0.649,
+      "odds": 1.53,
+      "opp_odds": 2.8,
       "debut": false,
       "debut_names": [],
       "bet": null,
@@ -99,11 +109,11 @@
     {
       "pick": "Akbar Abdullaev",
       "opponent": "Mairon Santos",
-      "p": 0.5738,
+      "p": 0.6315,
       "p_model": 0.2295,
-      "p_market": 0.6817,
-      "odds": 1.42,
-      "opp_odds": 2.85,
+      "p_market": 0.7375,
+      "odds": 1.33,
+      "opp_odds": 3.5,
       "debut": true,
       "debut_names": [
         "Akbar Abdullaev"
@@ -122,11 +132,11 @@
     {
       "pick": "Magomed Tuchalov",
       "opponent": "Ion Cutelaba",
-      "p": 0.6707,
+      "p": 0.6585,
       "p_model": 0.6319,
-      "p_market": 0.6478,
-      "odds": 1.5,
-      "opp_odds": 2.65,
+      "p_market": 0.6337,
+      "odds": 1.53,
+      "opp_odds": 2.55,
       "debut": false,
       "debut_names": [],
       "bet": null,
@@ -143,10 +153,10 @@
     {
       "pick": "Jafel Filho",
       "opponent": "Bruno Silva",
-      "p": 0.5853,
+      "p": 0.5902,
       "p_model": 0.5686,
-      "p_market": 0.572,
-      "odds": 1.73,
+      "p_market": 0.5776,
+      "odds": 1.7,
       "opp_odds": 2.3,
       "debut": false,
       "debut_names": [],
@@ -164,11 +174,11 @@
     {
       "pick": "Ivan Gnizditskiy",
       "opponent": "Uran Satybaldiev",
-      "p": 0.5251,
+      "p": 0.5079,
       "p_model": 0.5251,
-      "p_market": null,
-      "odds": null,
-      "opp_odds": null,
+      "p_market": 0.5,
+      "odds": 1.9,
+      "opp_odds": 1.9,
       "debut": true,
       "debut_names": [
         "Ivan Gnizditskiy"
@@ -178,7 +188,10 @@
       "bet_p": null,
       "edge": null,
       "stake": null,
-      "first_odds": {},
+      "first_odds": {
+        "Ivan Gnizditskiy": 1.9,
+        "Uran Satybaldiev": 1.9
+      },
       "suggested": {}
     },
     {
@@ -202,29 +215,42 @@
     {
       "pick": "Pavel Andrusca",
       "opponent": "Mahammadali Osmanli",
-      "p": 0.7819,
+      "p": 0.6471,
       "p_model": 0.7819,
-      "p_market": null,
-      "odds": null,
-      "opp_odds": null,
+      "p_market": 0.5576,
+      "odds": 1.73,
+      "opp_odds": 2.15,
       "debut": false,
       "debut_names": [],
-      "bet": null,
-      "bet_odds": null,
-      "bet_p": null,
-      "edge": null,
-      "stake": null,
-      "first_odds": {},
-      "suggested": {}
+      "bet": "Pavel Andrusca",
+      "bet_odds": 1.73,
+      "bet_p": 0.6471,
+      "edge": 0.1195,
+      "stake": 2.0,
+      "first_odds": {
+        "Pavel Andrusca": 1.73,
+        "Mahammadali Osmanli": 2.15
+      },
+      "suggested": {
+        "Pavel Andrusca": {
+          "odds": 1.73,
+          "at": "2026-11-24T18:58:11+00:00"
+        }
+      },
+      "bet_first": {
+        "odds": 1.73,
+        "at": "2026-11-24T18:58:11+00:00",
+        "side": "Pavel Andrusca"
+      }
     },
     {
       "pick": "Matthieu Duclos",
       "opponent": "Modestino Rodrigues",
-      "p": 0.5107,
+      "p": 0.5829,
       "p_model": 0.5107,
-      "p_market": null,
-      "odds": null,
-      "opp_odds": null,
+      "p_market": 0.5894,
+      "odds": 1.64,
+      "opp_odds": 2.3,
       "debut": true,
       "debut_names": [
         "Modestino Rodrigues"
@@ -234,7 +260,10 @@
       "bet_p": null,
       "edge": null,
       "stake": null,
-      "first_odds": {},
+      "first_odds": {
+        "Matthieu Duclos": 1.64,
+        "Modestino Rodrigues": 2.3
+      },
       "suggested": {}
     },
     {
@@ -253,6 +282,48 @@
       "edge": null,
       "stake": null,
       "first_odds": {},
+      "suggested": {}
+    },
+    {
+      "pick": "Luke Riley",
+      "opponent": "Gabriel Santos",
+      "p": 0.6285,
+      "p_model": 0.6462,
+      "p_market": 0.5936,
+      "odds": 1.62,
+      "opp_odds": 2.3,
+      "debut": false,
+      "debut_names": [],
+      "bet": null,
+      "bet_odds": null,
+      "bet_p": null,
+      "edge": null,
+      "stake": null,
+      "first_odds": {
+        "Luke Riley": 1.62,
+        "Gabriel Santos": 2.3
+      },
+      "suggested": {}
+    },
+    {
+      "pick": "Mateusz Rebecki",
+      "opponent": "Elves Brener",
+      "p": 0.6241,
+      "p_model": 0.5957,
+      "p_market": 0.6067,
+      "odds": 1.58,
+      "opp_odds": 2.35,
+      "debut": false,
+      "debut_names": [],
+      "bet": null,
+      "bet_odds": null,
+      "bet_p": null,
+      "edge": null,
+      "stake": null,
+      "first_odds": {
+        "Mateusz Rebecki": 1.58,
+        "Elves Brener": 2.35
+      },
       "suggested": {}
     }
   ],
@@ -304,6 +375,14 @@
     [
       "Abdul Hussein",
       "Hecher Sosa"
+    ],
+    [
+      "Luke Riley",
+      "Gabriel Santos"
+    ],
+    [
+      "Mateusz Rebecki",
+      "Elves Brener"
     ]
   ]
 }
