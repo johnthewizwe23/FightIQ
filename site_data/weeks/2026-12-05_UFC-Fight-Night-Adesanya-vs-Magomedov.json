@@ -4,7 +4,7 @@
   "slug": "2026-12-05_UFC-Fight-Night-Adesanya-vs-Magomedov",
   "source": "odds feed",
   "published_at": "2026-11-23T00:55:27+00:00",
-  "updated_at": "2026-11-26T17:48:16+00:00",
+  "updated_at": "2026-11-27T09:03:16+00:00",
   "locks_at": "2026-12-05T15:00:00+00:00",
   "bouts": [
     {
@@ -83,11 +83,11 @@
     {
       "pick": "Islam Dulatov",
       "opponent": "Levan Chokheli",
-      "p": 0.6361,
+      "p": 0.6272,
       "p_model": 0.5655,
-      "p_market": 0.6307,
+      "p_market": 0.6206,
       "odds": 1.57,
-      "opp_odds": 2.65,
+      "opp_odds": 2.5,
       "debut": false,
       "debut_names": [],
       "bet": null,
@@ -148,11 +148,11 @@
     {
       "pick": "Jafel Filho",
       "opponent": "Bruno Silva",
-      "p": 0.5753,
+      "p": 0.5771,
       "p_model": 0.5686,
-      "p_market": 0.5607,
+      "p_market": 0.5627,
       "odds": 1.73,
-      "opp_odds": 2.18,
+      "opp_odds": 2.2,
       "debut": false,
       "debut_names": [],
       "bet": null,
@@ -169,10 +169,10 @@
     {
       "pick": "Uran Satybaldiev",
       "opponent": "Ivan Gnizditskiy",
-      "p": 0.5355,
+      "p": 0.5313,
       "p_model": 0.5254,
-      "p_market": 0.531,
-      "odds": 1.8,
+      "p_market": 0.5262,
+      "odds": 1.83,
       "opp_odds": 2.02,
       "debut": true,
       "debut_names": [
@@ -269,10 +269,10 @@
     {
       "pick": "Abdul Hussein",
       "opponent": "Enrique Hecher Sosa",
-      "p": 0.6394,
+      "p": 0.6562,
       "p_model": 0.6642,
-      "p_market": 0.5996,
-      "odds": 1.65,
+      "p_market": 0.6193,
+      "odds": 1.56,
       "opp_odds": 2.45,
       "debut": true,
       "debut_names": [
