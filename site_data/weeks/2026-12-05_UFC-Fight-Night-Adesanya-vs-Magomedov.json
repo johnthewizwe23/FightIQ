@@ -4,24 +4,24 @@
   "slug": "2026-12-05_UFC-Fight-Night-Adesanya-vs-Magomedov",
   "source": "odds feed",
   "published_at": "2026-11-23T00:55:27+00:00",
-  "updated_at": "2026-11-27T17:34:41+00:00",
+  "updated_at": "2026-11-27T21:36:34+00:00",
   "locks_at": "2026-12-05T15:00:00+00:00",
   "bouts": [
     {
       "pick": "Israel Adesanya",
       "opponent": "Shara Magomedov",
-      "p": 0.5836,
+      "p": 0.5848,
       "p_model": 0.4495,
-      "p_market": 0.6109,
+      "p_market": 0.6123,
       "odds": 1.64,
-      "opp_odds": 2.58,
+      "opp_odds": 2.6,
       "debut": false,
       "debut_names": [],
       "bet": "Shara Magomedov",
-      "bet_odds": 2.58,
-      "bet_p": 0.4164,
-      "edge": 0.0743,
-      "stake": 1.17,
+      "bet_odds": 2.6,
+      "bet_p": 0.4152,
+      "edge": 0.0794,
+      "stake": 1.24,
       "first_odds": {
         "Israel Adesanya": 1.64,
         "Shara Magomedov": 2.45
@@ -62,18 +62,18 @@
     {
       "pick": "Mario Pinto",
       "opponent": "Serghei Spivac",
-      "p": 0.7965,
+      "p": 0.7954,
       "p_model": 0.7898,
-      "p_market": 0.7442,
+      "p_market": 0.7427,
       "odds": 1.32,
-      "opp_odds": 3.6,
+      "opp_odds": 3.55,
       "debut": false,
       "debut_names": [],
-      "bet": "Mario Pinto",
-      "bet_odds": 1.32,
-      "bet_p": 0.7965,
-      "edge": 0.0514,
-      "stake": 2.0,
+      "bet": null,
+      "bet_odds": null,
+      "bet_p": null,
+      "edge": null,
+      "stake": null,
       "first_odds": {
         "Mario Pinto": 1.35,
         "Serghei Spivac": 3.2
@@ -83,11 +83,6 @@
           "odds": 1.35,
           "at": "2026-11-23T00:55:27+00:00"
         }
-      },
-      "bet_first": {
-        "odds": 1.35,
-        "at": "2026-11-23T00:55:27+00:00",
-        "side": "Mario Pinto"
       }
     },
     {
