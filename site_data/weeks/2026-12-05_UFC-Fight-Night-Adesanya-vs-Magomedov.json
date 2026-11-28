@@ -4,7 +4,7 @@
   "slug": "2026-12-05_UFC-Fight-Night-Adesanya-vs-Magomedov",
   "source": "odds feed",
   "published_at": "2026-11-23T00:55:27+00:00",
-  "updated_at": "2026-11-27T21:36:34+00:00",
+  "updated_at": "2026-11-28T16:16:40+00:00",
   "locks_at": "2026-12-05T15:00:00+00:00",
   "bouts": [
     {
@@ -109,11 +109,11 @@
     {
       "pick": "Akbar Abdullaev",
       "opponent": "Mairon Santos",
-      "p": 0.63,
+      "p": 0.6278,
       "p_model": 0.2386,
-      "p_market": 0.7326,
-      "odds": 1.33,
-      "opp_odds": 3.35,
+      "p_market": 0.7305,
+      "odds": 1.35,
+      "opp_odds": 3.5,
       "debut": true,
       "debut_names": [
         "Akbar Abdullaev"
@@ -153,10 +153,10 @@
     {
       "pick": "Jafel Filho",
       "opponent": "Bruno Silva",
-      "p": 0.5753,
+      "p": 0.5722,
       "p_model": 0.5686,
-      "p_market": 0.5607,
-      "odds": 1.73,
+      "p_market": 0.5572,
+      "odds": 1.75,
       "opp_odds": 2.18,
       "debut": false,
       "debut_names": [],
@@ -197,11 +197,11 @@
     {
       "pick": "Marco Tulio Silva",
       "opponent": "JunYong Park",
-      "p": 0.5889,
+      "p": 0.5855,
       "p_model": 0.4448,
-      "p_market": 0.6183,
+      "p_market": 0.6146,
       "odds": 1.58,
-      "opp_odds": 2.5,
+      "opp_odds": 2.45,
       "debut": true,
       "debut_names": [
         "Marco Tulio Silva"
@@ -220,17 +220,17 @@
     {
       "pick": "Pavel Andrusca",
       "opponent": "Mahammadali Osmanli",
-      "p": 0.6401,
+      "p": 0.6542,
       "p_model": 0.7819,
-      "p_market": 0.5491,
-      "odds": 1.81,
+      "p_market": 0.5664,
+      "odds": 1.71,
       "opp_odds": 2.2,
       "debut": false,
       "debut_names": [],
       "bet": "Pavel Andrusca",
-      "bet_odds": 1.81,
-      "bet_p": 0.6401,
-      "edge": 0.1585,
+      "bet_odds": 1.71,
+      "bet_p": 0.6542,
+      "edge": 0.1188,
       "stake": 2.0,
       "first_odds": {
         "Pavel Andrusca": 1.73,
@@ -251,11 +251,11 @@
     {
       "pick": "Matthieu Duclos",
       "opponent": "Modestino Rodrigues",
-      "p": 0.5712,
+      "p": 0.5584,
       "p_model": 0.5484,
-      "p_market": 0.5632,
-      "odds": 1.7,
-      "opp_odds": 2.15,
+      "p_market": 0.5487,
+      "odds": 1.75,
+      "opp_odds": 2.1,
       "debut": true,
       "debut_names": [
         "Modestino Rodrigues"
@@ -297,10 +297,10 @@
     {
       "pick": "Luke Riley",
       "opponent": "Gabriel Santos",
-      "p": 0.6021,
+      "p": 0.6069,
       "p_model": 0.6577,
-      "p_market": 0.5587,
-      "odds": 1.73,
+      "p_market": 0.5642,
+      "odds": 1.7,
       "opp_odds": 2.16,
       "debut": false,
       "debut_names": [],
