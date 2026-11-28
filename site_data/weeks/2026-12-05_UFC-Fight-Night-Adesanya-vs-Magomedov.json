@@ -4,7 +4,7 @@
   "slug": "2026-12-05_UFC-Fight-Night-Adesanya-vs-Magomedov",
   "source": "odds feed",
   "published_at": "2026-11-23T00:55:27+00:00",
-  "updated_at": "2026-11-28T16:16:40+00:00",
+  "updated_at": "2026-11-28T18:30:10+00:00",
   "locks_at": "2026-12-05T15:00:00+00:00",
   "bouts": [
     {
@@ -109,11 +109,11 @@
     {
       "pick": "Akbar Abdullaev",
       "opponent": "Mairon Santos",
-      "p": 0.6278,
+      "p": 0.6225,
       "p_model": 0.2386,
-      "p_market": 0.7305,
+      "p_market": 0.7255,
       "odds": 1.35,
-      "opp_odds": 3.5,
+      "opp_odds": 3.35,
       "debut": true,
       "debut_names": [
         "Akbar Abdullaev"
@@ -220,17 +220,17 @@
     {
       "pick": "Pavel Andrusca",
       "opponent": "Mahammadali Osmanli",
-      "p": 0.6542,
+      "p": 0.6486,
       "p_model": 0.7819,
-      "p_market": 0.5664,
-      "odds": 1.71,
-      "opp_odds": 2.2,
+      "p_market": 0.5595,
+      "odds": 1.72,
+      "opp_odds": 2.15,
       "debut": false,
       "debut_names": [],
       "bet": "Pavel Andrusca",
-      "bet_odds": 1.71,
-      "bet_p": 0.6542,
-      "edge": 0.1188,
+      "bet_odds": 1.72,
+      "bet_p": 0.6486,
+      "edge": 0.1156,
       "stake": 2.0,
       "first_odds": {
         "Pavel Andrusca": 1.73,
